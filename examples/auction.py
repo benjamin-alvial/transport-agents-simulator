@@ -139,3 +139,24 @@ if __name__ == "__main__":
     print("Starting simulation...\n")
     sim.run(until=20.0)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
+
+
+# Starting simulation...
+#
+# [t=1.0] Auctioneer: Starting auction for Vintage Watch
+#   Starting price: $50.00, Duration: 5.0s
+# [t=1.0] bidder_alice: Received auction notification for Vintage Watch
+# [t=1.0] bidder_bob: Received auction notification for Vintage Watch
+# [t=1.0] bidder_carol: Received auction notification for Vintage Watch
+# [t=1.5] bidder_alice: Deciding to bid $55.00
+# [t=1.5] Auctioneer: Received bid of $55.00 from bidder_alice
+# [t=1.8] bidder_carol: Deciding to bid $55.00
+# [t=1.8] Auctioneer: Received bid of $55.00 from bidder_carol
+# [t=2.0] bidder_bob: Deciding to bid $55.00
+# [t=2.0] Auctioneer: Received bid of $55.00 from bidder_bob
+#
+# [t=6.0] Auctioneer: Auction ended
+#   Winner: bidder_alice with bid $55.00
+# [t=6.0] bidder_alice: Won auction! Paid $55.00
+#
+# Simulation complete. Final time: 20.0

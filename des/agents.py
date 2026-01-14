@@ -20,15 +20,15 @@ class Agent(ABC):
         self.agent_id: str = agent_id
         self.sim: Optional[SimulationKernel] = None
     
-    @abstractmethod
-    def receive_message(self, message: Message):
-        """
-        Handle incoming messages. Must be implemented by subclasses.
-        
-        Args:
-            message: The incoming message
-        """
-        pass
+    # @abstractmethod
+    # def receive_message(self, message: Message):
+    #     """
+    #     Handle incoming messages. Must be implemented by subclasses.
+    #
+    #     Args:
+    #         message: The incoming message
+    #     """
+    #     pass
     
     def schedule_action(self, delay: float, action: Callable, data: Any = None):
         """
