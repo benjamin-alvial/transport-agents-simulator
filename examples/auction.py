@@ -1,5 +1,5 @@
 from typing import List
-from des import SimulationKernel, Agent, Message
+from parcel_delivery import SimulationKernel, Agent, Message
 
 
 # Example: Simple Auction Agents

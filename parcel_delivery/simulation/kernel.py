@@ -1,65 +1,51 @@
 import heapq
-from typing import List, Dict, Optional, Callable, Any
-from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Callable, Any, TYPE_CHECKING
 
-from .message import Message
-from .agents import Agent
+from parcel_delivery.agents.agent import Agent
+from parcel_delivery.simulation.event import Event
 
-
-@dataclass(order=True)
-class Event:
-    """
-    Represents a single event in the simulation.
-    
-    Events are ordered by time (earlier events come first).
-    If times are equal, they're ordered by event_id for deterministic behavior.
-    """
-    time: float
-    event_id: int = field(compare=True)
-    action: Callable = field(compare=False)
-    data: Any = field(default=None, compare=False)
-    
-    def execute(self):
-        return self.action(self.data)
+if TYPE_CHECKING:
+    from parcel_delivery.simulation.message import Message
 
 
-class SimulationKernel:
+class Kernel:
     """
     The core DES engine. Manages the event queue and simulation clock and keeps track of agents.
     """
+
     def __init__(self):
         self.current_time: float = 0.0
-        self.event_queue: List[Event] = []
+        self.event_queue: List["Event"] = []
         self.event_counter: int = 0
         self.running: bool = False
         self.agents: Dict[str, Agent] = {}
-    
+
     def register_agent(self, agent: Agent):
         """Register an agent within the simulation"""
         if agent.agent_id in self.agents:
             raise ValueError(f"Agent {agent.agent_id} already registered")
         self.agents[agent.agent_id] = agent
         agent.sim = self
-        
+
     def get_agent(self, agent_id: str) -> Optional[Agent]:
         """Retrieve an agent by ID"""
         return self.agents.get(agent_id)
-    
-    def schedule(self, delay: float, action: Callable, data: Any = None) -> Event:
+
+    def schedule(self, delay: float, action: Callable, data: Any = None) -> "Event":
         """
         Schedule an event to occur after 'delay' time units.
-        
+
         Args:
             delay: Time from now when event should occur (must be >= 0)
             action: Function to call when event fires
             data: Optional data to pass to action
-            
+
         Returns:
             The scheduled Event object
         """
         if delay < 0:
             raise ValueError(f"Delay must be non-negative, got {delay}")
-        
+
         event_time = self.current_time + delay
         event = Event(
             time=event_time,
@@ -68,13 +54,13 @@ class SimulationKernel:
             data=data
         )
         self.event_counter += 1
-        heapq.heappush(self.event_queue, event) # type: ignore
+        heapq.heappush(self.event_queue, event)  # type: ignore
         return event
-    
-    def schedule_at(self, time: float, action: Callable, data: Any = None) -> Event:
+
+    def schedule_at(self, time: float, action: Callable, data: Any = None) -> "Event":
         """
         Schedule an event to occur at a specific absolute time.
-        
+
         Args:
             time: Absolute simulation time for the event
             action: Function to call when event fires
@@ -82,7 +68,7 @@ class SimulationKernel:
         """
         if time < self.current_time:
             raise ValueError(f"Cannot schedule event in the past: {time} < {self.current_time}")
-        
+
         event = Event(
             time=time,
             event_id=self.event_counter,
@@ -90,14 +76,14 @@ class SimulationKernel:
             data=data
         )
         self.event_counter += 1
-        heapq.heappush(self.event_queue, event) # type: ignore
+        heapq.heappush(self.event_queue, event)  # type: ignore
         return event
-    
-    def send_message(self, sender_id: str, receiver_id: str, 
+
+    def send_message(self, sender_id: str, receiver_id: str,
                      msg_type: str, content: Any, delay: float = 0.0):
         """
         Send a message from one agent to another with optional delay.
-        
+
         Args:
             sender_id: ID of sending agent
             receiver_id: ID of receiving agent
@@ -112,7 +98,7 @@ class SimulationKernel:
         receiver = self.get_agent(receiver_id)
         if receiver is None:
             raise ValueError(f"Agent {receiver_id} not found")
-        
+
         message = Message(
             sender_id=sender_id,
             receiver_id=receiver_id,
@@ -120,45 +106,45 @@ class SimulationKernel:
             content=content,
             timestamp=self.current_time
         )
-        
+
         # Schedule message delivery
         self.schedule(delay, receiver.receive_message, message)
-    
+
     def run(self, until: Optional[float] = None):
         """
         Run the simulation until the event queue is empty or 'until' time is reached.
-        
+
         Args:
             until: Optional stop time. If None, runs until queue is empty.
         """
         self.running = True
-        
+
         while self.running and self.event_queue:
             # Peek at next event
             next_event = self.event_queue[0]
-            
+
             # Check if we've reached the stop time
             if until is not None and next_event.time > until:
                 self.current_time = until
                 break
-            
+
             # Pop and execute the event
-            event = heapq.heappop(self.event_queue) # type: ignore
+            event = heapq.heappop(self.event_queue)  # type: ignore
             self.current_time = event.time
             event.execute()
-        
+
         # If we stopped early due to 'until', update time
         if until is not None and self.current_time < until:
             self.current_time = until
-    
+
     def stop(self):
         """Stop the simulation (can be called from within an event)"""
         self.running = False
-    
+
     def peek_next_event_time(self) -> Optional[float]:
         """Return the time of the next event without removing it"""
         return self.event_queue[0].time if self.event_queue else None
-    
+
     def reset(self):
         """Reset the simulation to initial state"""
         self.current_time = 0.0
