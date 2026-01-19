@@ -3,9 +3,7 @@ from typing import List, Dict, Optional, Callable, Any, TYPE_CHECKING
 
 from parcel_delivery.agents.agent import Agent
 from parcel_delivery.simulation.event import Event
-
-if TYPE_CHECKING:
-    from parcel_delivery.simulation.message import Message
+from parcel_delivery.simulation.message import Message
 
 
 class Kernel:
@@ -18,17 +16,30 @@ class Kernel:
         self.event_queue: List["Event"] = []
         self.event_counter: int = 0
         self.running: bool = False
-        self.agents: Dict[str, Agent] = {}
+        self.agents: Dict[str, "Agent"] = {}
 
-    def register_agent(self, agent: Agent):
-        """Register an agent within the simulation"""
+    def register_agent(self, agent: "Agent"):
+        """
+        Register an agent within the simulation.
+
+        Args:
+            agent: The agent to be registered
+        """
         if agent.agent_id in self.agents:
             raise ValueError(f"Agent {agent.agent_id} already registered")
         self.agents[agent.agent_id] = agent
         agent.sim = self
 
-    def get_agent(self, agent_id: str) -> Optional[Agent]:
-        """Retrieve an agent by ID"""
+    def get_agent(self, agent_id: str) -> Optional["Agent"]:
+        """
+        Retrieve an agent by ID.
+
+        Args:
+            agent_id: Agent ID of the agent to be retrieved
+
+        Returns:
+            The retrieved agent object
+        """
         return self.agents.get(agent_id)
 
     def schedule(self, delay: float, action: Callable, data: Any = None) -> "Event":
@@ -65,6 +76,9 @@ class Kernel:
             time: Absolute simulation time for the event
             action: Function to call when event fires
             data: Optional data to pass to action
+
+        Returns:
+            The scheduled Event object
         """
         if time < self.current_time:
             raise ValueError(f"Cannot schedule event in the past: {time} < {self.current_time}")
