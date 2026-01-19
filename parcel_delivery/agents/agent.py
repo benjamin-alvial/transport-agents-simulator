@@ -30,7 +30,7 @@ class Agent(ABC):
         """
         pass
 
-    def schedule_action(self, delay: float, action: Callable, data: Any = None):
+    def schedule_action(self, delay: float, action: Callable, data: dict[str, Any] | None = {}):
         """
         Schedule a future action for this agent.
 

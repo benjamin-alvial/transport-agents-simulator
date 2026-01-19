@@ -54,8 +54,8 @@ class Platform(Agent):
 
         # Start the new auction
         print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: A new auction for {parcel.contents} has started")
-        self.schedule_action(delay=0.0, action=new_auction.start_bidding, data=None)
-        self.schedule_action(delay=0.0, action=self.send_auction_notification, data=new_auction)
+        self.schedule_action(delay=0.0, action=new_auction.start_bidding)
+        self.schedule_action(delay=0.0, action=self.send_auction_notification, data={"auction": new_auction})
 
     def handle_complete_delivery_notification(self, message: "Message"):
         pass

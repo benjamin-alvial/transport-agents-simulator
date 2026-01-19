@@ -41,23 +41,24 @@ class Courier(Agent):
         """"
         Receives a notification that a new auction for a parcel has started.
         """
+        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Received auction notification.")
         auction = message.content["auction"]
         parcel = auction.auctioned_parcel
 
         # Courier first sees if the auctioned parcel fits its capacity
         if self.current_load + parcel.weight <= self.capacity:
-            BID_VALUE = random.randint(1, 100)
+            BID_VALUE = random.randint(1, 10)
             bid = Bid(self, auction, BID_VALUE)
 
             print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
-            self.schedule_action(delay=5.0, action=self.send_bid_request, data=(bid,auction))
+            self.schedule_action(delay=5.0, action=self.send_bid_request, data={"bid": bid, "auction": auction})
 
     def handle_winner_notification(self, message: "Message"):
         """ Prints happy message and adds parcel to schedule and vehicle."""
         print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Won the auction.")
         parcel = message.content["parcel"]
         self.schedule.append(Stop(parcel.origin, parcel.state, parcel))
-        self.schedule_action(delay=0.0, action=self.start_delivery, data=None)
+        self.schedule_action(delay=0.0, action=self.start_delivery)
 
     def handle_loser_notification(self):
         """ Prints sad message."""
@@ -93,7 +94,7 @@ class Courier(Agent):
             travel_time = distance / self.speed
 
             print(f"[t={self.sim.current_time}] {self.agent_id}: Traveling from {self.position} to {next_stop.location} (will take {travel_time:.1f}s)")
-            self.schedule_action(travel_time, self.arrive_at_stop, next_stop)
+            self.schedule_action(travel_time, self.arrive_at_stop, {"stop": next_stop})
 
     def arrive_at_stop(self, stop):
         """"

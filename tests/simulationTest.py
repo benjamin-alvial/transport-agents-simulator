@@ -13,12 +13,12 @@ class TestEvent(unittest.TestCase):
     def test_event_creation(self):
         """Test basic event creation"""
         action = Mock()
-        event = Event(time=10.0, event_id=1, action=action, data="test_data")
+        event = Event(time=10.0, event_id=1, action=action, data={"test_data":"test_data"})
 
         self.assertEqual(event.time, 10.0)
         self.assertEqual(event.event_id, 1)
         self.assertEqual(event.action, action)
-        self.assertEqual(event.data, "test_data")
+        self.assertEqual(event.data["test_data"], "test_data")
 
     def test_event_without_data(self):
         """Test event creation without data"""
@@ -27,26 +27,26 @@ class TestEvent(unittest.TestCase):
 
         self.assertEqual(event.time, 5.0)
         self.assertEqual(event.event_id, 0)
-        self.assertIsNone(event.data)
+        self.assertEqual(event.data, {})
 
     def test_event_execute(self):
         """Test event execution calls action with data"""
         action = Mock(return_value="result")
-        event = Event(time=1.0, event_id=0, action=action, data="test")
+        event = Event(time=1.0, event_id=0, action=action, data={"arg1": "test", "arg2": 42})
 
         result = event.execute()
 
-        action.assert_called_once_with("test")
+        action.assert_called_once_with(arg1="test", arg2=42)
         self.assertEqual(result, "result")
 
     def test_event_execute_without_data(self):
-        """Test event execution with None data"""
+        """Test event execution with no data"""
         action = Mock()
         event = Event(time=1.0, event_id=0, action=action)
 
         event.execute()
 
-        action.assert_called_once_with(None)
+        action.assert_called_once_with()
 
     def test_event_ordering_by_time(self):
         """Test events are ordered by time"""
@@ -167,7 +167,7 @@ class TestKernel(unittest.TestCase):
     def test_schedule_event(self):
         """Test scheduling an event"""
         action = Mock()
-        data = "test_data"
+        data = {"test_data": "test_data"}
 
         event = self.kernel.schedule(5.0, action, data)
 
@@ -214,7 +214,7 @@ class TestKernel(unittest.TestCase):
         """Test scheduling at absolute time"""
         action = Mock()
 
-        event = self.kernel.schedule_at(10.0, action, "data")
+        event = self.kernel.schedule_at(10.0, action, {"data": "data"})
 
         self.assertEqual(event.time, 10.0)
         self.assertEqual(len(self.kernel.event_queue), 1)
@@ -296,13 +296,13 @@ class TestKernel(unittest.TestCase):
         """Test run executes all events in order"""
         executed = []
 
-        def action1(_):
+        def action1():
             executed.append(1)
 
-        def action2(_):
+        def action2():
             executed.append(2)
 
-        def action3(_):
+        def action3():
             executed.append(3)
 
         self.kernel.schedule(5.0, action1)
@@ -353,7 +353,7 @@ class TestKernel(unittest.TestCase):
     def test_stop_during_simulation(self):
         """Test stopping simulation from within an event"""
 
-        def stop_action(_):
+        def stop_action():
             self.kernel.stop()
 
         action = Mock()
@@ -425,7 +425,7 @@ class TestKernel(unittest.TestCase):
         """Test current time advances as events are processed"""
         times = []
 
-        def capture_time(_):
+        def capture_time():
             times.append(self.kernel.current_time)
 
         self.kernel.schedule(5.0, capture_time)

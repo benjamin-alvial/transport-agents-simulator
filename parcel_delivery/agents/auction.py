@@ -25,7 +25,7 @@ class Auction(Agent):
     def start_bidding(self):
         """Begins bidding for the auctioned parcel."""
         print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Bidding for {self.auctioned_parcel.contents} has started. Starting price: {self.starting_price}. Duration: {self.duration}")
-        self.schedule_action(self.duration, self.end_bidding, None)
+        self.schedule_action(self.duration, self.end_bidding)
 
     def receive_message(self, message: "Message"):
         """
@@ -53,6 +53,7 @@ class Auction(Agent):
 
     def end_bidding(self):
         """Ends bidding for the auctioned parcel."""
+        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Bidding has ended.")
         winner = self.determine_winner()
         for bid in self.bids:
             courier = bid.courier
@@ -78,7 +79,7 @@ class Auction(Agent):
         """
         self.send_message(receiver_id=courier.agent_id,
                           msg_type="WINNER_NOTIFICATION",
-                          content=None,
+                          content={"parcel": self.auctioned_parcel},
                           delay=0.0)
 
     def send_loser_notification(self, courier: "Courier"):

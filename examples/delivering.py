@@ -13,16 +13,13 @@ if __name__ == "__main__":
     sim.register_agent(courier)
 
     sim.schedule(delay=5.0,
-                 action=lambda _: customer_sending.send_delivery_request(_,_),
-                 data=(Parcel("laptop", customer_sending.location, 100, 5, 10),uber))
+                 action=customer_sending.send_delivery_request,
+                 data={"parcel": Parcel("laptop", customer_sending.location, 100, 5, 10),
+                       "platform": uber})
 
     sim.schedule(delay=5.0,
-                 action=lambda _: uber.register_courier(_),
-                 data=courier)
-
-    sim.schedule(10.0, lambda _: courier.ask_for_parcels(uber), None)
-
-    sim.schedule(15.0, lambda _: courier.start_delivery(), None)
+                 action=uber.register_courier,
+                 data={"courier": courier})
 
     print("Starting simulation...\n")
     sim.run(until=100.0)

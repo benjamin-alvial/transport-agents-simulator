@@ -13,7 +13,7 @@ class Event:
     time: float
     event_id: int = field(compare=True)
     action: Callable = field(compare=False)
-    data: Any = field(default=None, compare=False)
+    data: dict[str, Any] = field(default_factory=dict, compare=False)
 
     def execute(self):
-        return self.action(self.data)
+        return self.action(**self.data)

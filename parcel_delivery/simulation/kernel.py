@@ -42,14 +42,14 @@ class Kernel:
         """
         return self.agents.get(agent_id)
 
-    def schedule(self, delay: float, action: Callable, data: Any = None) -> "Event":
+    def schedule(self, delay: float, action: Callable, data: dict[str, Any] | None = None) -> "Event":
         """
         Schedule an event to occur after 'delay' time units.
 
         Args:
             delay: Time from now when event should occur (must be >= 0)
             action: Function to call when event fires
-            data: Optional data to pass to action
+            data: Optional dictionary of parameters to pass to action
 
         Returns:
             The scheduled Event object
@@ -62,20 +62,20 @@ class Kernel:
             time=event_time,
             event_id=self.event_counter,
             action=action,
-            data=data
+            data=data or {}
         )
         self.event_counter += 1
         heapq.heappush(self.event_queue, event)  # type: ignore
         return event
 
-    def schedule_at(self, time: float, action: Callable, data: Any = None) -> "Event":
+    def schedule_at(self, time: float, action: Callable, data: dict[str, Any] | None = None) -> "Event":
         """
         Schedule an event to occur at a specific absolute time.
 
         Args:
             time: Absolute simulation time for the event
             action: Function to call when event fires
-            data: Optional data to pass to action
+            data: Optional dictionary of parameters to pass to action
 
         Returns:
             The scheduled Event object
@@ -87,7 +87,7 @@ class Kernel:
             time=time,
             event_id=self.event_counter,
             action=action,
-            data=data
+            data=data or {}
         )
         self.event_counter += 1
         heapq.heappush(self.event_queue, event)  # type: ignore
@@ -122,7 +122,7 @@ class Kernel:
         )
 
         # Schedule message delivery
-        self.schedule(delay, receiver.receive_message, message)
+        self.schedule(delay, receiver.receive_message, {"message": message})
 
     def run(self, until: Optional[float] = None):
         """
