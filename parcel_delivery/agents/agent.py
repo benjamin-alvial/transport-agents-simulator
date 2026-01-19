@@ -1,8 +1,9 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, Callable, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from parcel_delivery.simulation.kernel import Kernel
+    from parcel_delivery.simulation.message import Message
 
 
 class Agent(ABC):
@@ -18,6 +19,16 @@ class Agent(ABC):
     def __init__(self, agent_id: str):
         self.agent_id: str = agent_id
         self.sim: Optional["Kernel"] = None
+
+    @abstractmethod
+    def receive_message(self, message: "Message"):
+        """
+        Handle incoming messages. Must be implemented by subclasses.
+
+        Args:
+            message: The incoming message
+        """
+        pass
 
     def schedule_action(self, delay: float, action: Callable, data: Any = None):
         """

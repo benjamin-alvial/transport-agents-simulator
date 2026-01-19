@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 class Stop:
     """Represents a stop on the courier's route"""
 
-    def __init__(self, location: int, type: str, parcel: "Parcel"):
+    def __init__(self, location: int, stop_type: str, parcel: "Parcel"):
         self.location: int = location
-        self.type: str = type
+        self.stop_type: str = stop_type
         self.parcel: "Parcel" = parcel

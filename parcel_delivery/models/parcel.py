@@ -1,6 +1,3 @@
-from typing import Optional
-
-
 class Parcel:
     """
     A parcel that can be delivered.
@@ -12,11 +9,10 @@ class Parcel:
         self.destination: int = destination
         self.weight: float = weight
         self.fare: float = fare
-        self.id: Optional[str] = None
-        self.state: str = "waiting_pick_up"
+        self.state: str = "WAITING_PICK_UP"
 
     def __repr__(self):
         return (
-            f"Parcel(id={self.id}, contents={self.contents}, origin={self.origin}, destination={self.destination}, weight={self.weight}, "
+            f"Parcel(contents={self.contents}, origin={self.origin}, destination={self.destination}, weight={self.weight}, "
             f"fare={self.fare}, state={self.state})"
         )
