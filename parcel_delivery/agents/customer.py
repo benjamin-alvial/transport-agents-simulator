@@ -1,10 +1,11 @@
 from typing import TYPE_CHECKING
 
-from parcel_delivery.agents import Agent
-from parcel_delivery.models import Parcel
+from parcel_delivery.agents.agent import Agent
+from parcel_delivery.models.parcel import Parcel
 
 if TYPE_CHECKING:
     from parcel_delivery.agents import Platform
+    from parcel_delivery.simulation.message import Message
 
 
 class Customer(Agent):
@@ -15,7 +16,16 @@ class Customer(Agent):
         super().__init__(agent_id)
         self.location = location
 
-    def request_delivery(self, parcel: Parcel, platform: "Platform"):
+    def receive_message(self, message: "Message"):
+        """
+        Handle incoming messages. Customer doesn't receive messages.
+
+        Args:
+            message: The incoming message
+        """
+        pass
+
+    def send_delivery_request(self, parcel: "Parcel", platform: "Platform"):
         """
         Requests the delivery of a Parcel to the specified Platform.
 
@@ -24,5 +34,8 @@ class Customer(Agent):
             platform: platform being requested for delivery
         """
 
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Sent delivery request notification for {parcel.contents}")
-        platform.receive_parcel_request(parcel)
+        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Sent DELIVERY_REQUEST for {parcel.contents} to {platform.agent_id}")
+        self.send_message(receiver_id=platform.agent_id,
+                          msg_type="DELIVERY_REQUEST",
+                          content={"parcel": parcel},
+                          delay=0.0)
