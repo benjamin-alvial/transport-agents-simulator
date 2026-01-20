@@ -1,5 +1,5 @@
 import heapq
-from typing import List, Dict, Optional, Callable, Any, TYPE_CHECKING
+from typing import List, Dict, Optional, Callable, Any
 
 from parcel_delivery.agents.agent import Agent
 from parcel_delivery.simulation.event import Event
