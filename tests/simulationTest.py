@@ -20,6 +20,15 @@ class TestEvent(unittest.TestCase):
         self.assertEqual(event.action, action)
         self.assertEqual(event.data["test_data"], "test_data")
 
+    def test_event_with_negative_time(self):
+        """Test event with negative time"""
+        action = Mock()
+
+        with self.assertRaises(ValueError) as context:
+            event = Event(time=-10.0, event_id=1, action=action, data={"test_data":"test_data"})
+
+        self.assertIn("positive float", str(context.exception))
+
     def test_event_without_data(self):
         """Test event creation without data"""
         action = Mock()
@@ -413,13 +422,15 @@ class TestKernel(unittest.TestCase):
         action = Mock()
 
         event1 = self.kernel.schedule(1.0, action)
+        self.assertEqual(self.kernel.event_counter, 1)
         event2 = self.kernel.schedule(2.0, action)
+        self.assertEqual(self.kernel.event_counter, 2)
         event3 = self.kernel.schedule(3.0, action)
+        self.assertEqual(self.kernel.event_counter, 3)
 
         self.assertEqual(event1.event_id, 0)
         self.assertEqual(event2.event_id, 1)
         self.assertEqual(event3.event_id, 2)
-        self.assertEqual(self.kernel.event_counter, 3)
 
     def test_current_time_advances_during_run(self):
         """Test current time advances as events are processed"""
