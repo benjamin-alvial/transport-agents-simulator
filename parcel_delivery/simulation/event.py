@@ -16,7 +16,7 @@ class Event:
     data: dict[str, Any] = field(default_factory=dict, compare=False)
 
     def __post_init__(self):
-        if not isinstance(self.time, float) or self.time <= 0:
+        if not isinstance(self.time, float) or self.time < 0:
             raise ValueError("Time must be a positive float")
 
     def execute(self):
