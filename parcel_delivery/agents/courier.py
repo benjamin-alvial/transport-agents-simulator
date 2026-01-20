@@ -18,7 +18,7 @@ class Courier(Agent):
         self.position: int = position
         self.capacity: int = capacity
         self.speed: float = speed
-        self.schedule: List[Stop] = []
+        self.itinerary: List[Stop] = []
         self.current_load: float = 0
         self.carried_parcels: List[Parcel] = []
 
@@ -54,10 +54,10 @@ class Courier(Agent):
             self.schedule_action(delay=5.0, action=self.send_bid_request, data={"bid": bid, "auction": auction})
 
     def handle_winner_notification(self, message: "Message"):
-        """ Prints happy message and adds parcel to schedule and vehicle."""
+        """ Prints happy message and adds parcel to itinerary and vehicle."""
         print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Won the auction.")
         parcel = message.content["parcel"]
-        self.schedule.append(Stop(parcel.origin, parcel.state, parcel))
+        self.itinerary.append(Stop(parcel.origin, parcel.state, parcel))
         self.schedule_action(delay=0.0, action=self.start_delivery)
 
     def handle_loser_notification(self):
@@ -66,7 +66,7 @@ class Courier(Agent):
 
     def send_bid_request(self, bid: "Bid", auction: "Auction"):
         """
-        Sends a bis request to an Auction.
+        Sends a bid request to an Auction.
 
         Args:
             bid: The bid to send
@@ -82,12 +82,12 @@ class Courier(Agent):
         """"
         Starts the delivery of the scheduled parcel pick-ups and deliveries.
         """
-        if not self.schedule:
+        if not self.itinerary:
             print(f"[t={self.sim.current_time}] {self.agent_id}: All deliveries complete!")
 
         else:
-            # Next stop is just first in schedule
-            next_stop = self.schedule[0]
+            # Next stop is just first in itinerary
+            next_stop = self.itinerary[0]
 
             # Calculate travel time between current position and next stop location
             distance = abs(next_stop.location - self.position)
@@ -104,8 +104,8 @@ class Courier(Agent):
         self.position = stop.location
         print(f"[t={self.sim.current_time}] {self.agent_id}: Arrived at {self.position}")
 
-        # Remove from schedule
-        self.schedule.pop(0)
+        # Remove from itinerary
+        self.itinerary.pop(0)
 
         # Deliver or pickup
         stop_type = stop.stop_type
@@ -114,7 +114,7 @@ class Courier(Agent):
             print(f"[t={self.sim.current_time}] {self.agent_id}: Picked up parcel at {stop.location}")
             self.carried_parcels.append(pick_up_parcel)
             pick_up_parcel.state = "BEING_DELIVERED"
-            self.schedule.append(Stop(pick_up_parcel.destination, pick_up_parcel.state, pick_up_parcel))
+            self.itinerary.append(Stop(pick_up_parcel.destination, pick_up_parcel.state, pick_up_parcel))
         elif stop_type == "BEING_DELIVERED":
             drop_off_parcel = stop.parcel
             print(f"[t={self.sim.current_time}] {self.agent_id}: Delivered parcel at {stop.location}")
