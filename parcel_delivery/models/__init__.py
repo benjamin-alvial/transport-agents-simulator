@@ -10,9 +10,11 @@ Contains core data structures used throughout the simulation:
 from .parcel import Parcel
 from .stop import Stop
 from .bid import Bid
+from .node import Node
 
 __all__ = [
     "Parcel",
     "Stop",
     "Bid",
+    "Node"
 ]

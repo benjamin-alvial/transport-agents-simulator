@@ -4,6 +4,7 @@ from typing import List, Dict, Optional, Callable, Any
 from parcel_delivery.agents.agent import Agent
 from parcel_delivery.simulation.event import Event
 from parcel_delivery.simulation.message import Message
+from parcel_delivery.simulation.network import Network
 
 
 class Kernel:
@@ -17,6 +18,7 @@ class Kernel:
         self.event_counter: int = 0
         self.running: bool = False
         self.agents: Dict[str, "Agent"] = {}
+        self.network: Optional["Network"] = None
 
     def register_agent(self, agent: "Agent"):
         """
@@ -41,6 +43,10 @@ class Kernel:
             The retrieved agent object
         """
         return self.agents.get(agent_id)
+
+    def set_network(self, network: "Network"):
+        """Set the road network for the simulation"""
+        self.network = network
 
     def schedule(self, delay: float, action: Callable, data: dict[str, Any] | None = None) -> "Event":
         """
