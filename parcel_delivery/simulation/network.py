@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Sequence
+from typing import Dict, List, Tuple
 import heapq
 
 from parcel_delivery.models.node import Node
@@ -58,7 +58,7 @@ class Network:
 
     def shortest_path_distance(self, start: int, end: int) -> float:
         """
-        Calculate shortest path distance using Dijkstra's algorithm.
+        Calculate the shortest path distance using Dijkstra's algorithm.
         Returns infinity if no path exists.
         """
         if start == end:
@@ -92,7 +92,7 @@ class Network:
 
     def shortest_path(self, start: int, end: int) -> Tuple[List[int], float]:
         """
-        Calculate shortest path using Dijkstra's algorithm.
+        Calculate the shortest path using Dijkstra's algorithm.
         Returns (path, distance) where path is list of node IDs.
         """
         if start == end:

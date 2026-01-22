@@ -1,3 +1,4 @@
+import math
 import unittest
 from unittest.mock import Mock
 import heapq
@@ -5,6 +6,7 @@ import heapq
 from parcel_delivery.simulation.kernel import Kernel
 from parcel_delivery.simulation.event import Event
 from parcel_delivery.simulation.message import Message
+from parcel_delivery.simulation.network import Network
 
 
 class TestEvent(unittest.TestCase):
@@ -132,6 +134,7 @@ class TestKernel(unittest.TestCase):
         self.assertEqual(self.kernel.event_counter, 0)
         self.assertFalse(self.kernel.running)
         self.assertEqual(len(self.kernel.agents), 0)
+        self.assertEqual(self.kernel.network, None)
 
     def test_register_agent(self):
         """Test registering an agent"""
@@ -172,6 +175,12 @@ class TestKernel(unittest.TestCase):
         """Test getting non-existent agent returns None"""
         result = self.kernel.get_agent("nonexistent")
         self.assertIsNone(result)
+
+    def set_network(self):
+        """Set the network for this kernel"""
+        network = Mock()
+        self.kernel.set_network(network)
+        self.assertEqual(self.kernel.network, network)
 
     def test_schedule_event(self):
         """Test scheduling an event"""
@@ -504,6 +513,359 @@ class TestMessage(unittest.TestCase):
         self.assertTrue(hasattr(msg, 'msg_type'))
         self.assertTrue(hasattr(msg, 'content'))
         self.assertTrue(hasattr(msg, 'timestamp'))
+
+
+class TestNetwork(unittest.TestCase):
+    """Test basic Network functionality"""
+
+    def setUp(self):
+        """Create a fresh network for each test"""
+        self.network = Network()
+
+    def test_empty_network(self):
+        """Test newly created network is empty"""
+        self.assertEqual(len(self.network.nodes), 0)
+        self.assertEqual(len(self.network.adjacency), 0)
+
+    def test_add_single_node(self):
+        """Test adding a single node"""
+        self.network.add_node(0, 5.0, 10.0)
+        self.assertEqual(len(self.network.nodes), 1)
+        self.assertIn(0, self.network.nodes)
+        self.assertEqual(self.network.nodes[0].x, 5.0)
+        self.assertEqual(self.network.nodes[0].y, 10.0)
+
+    def test_add_multiple_nodes(self):
+        """Test adding multiple nodes"""
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 10.0, 0.0)
+        self.network.add_node(2, 20.0, 0.0)
+        self.assertEqual(len(self.network.nodes), 3)
+
+    def test_add_node_with_label(self):
+        """Test adding node with label"""
+        self.network.add_node(0, 0.0, 0.0, label="Depot")
+        self.assertEqual(self.network.nodes[0].label, "Depot")
+
+    def test_add_edge_without_nodes_raises_error(self):
+        """Test that adding edge without nodes raises error"""
+        with self.assertRaises(ValueError):
+            self.network.add_edge(0, 1)
+
+    def test_add_edge_calculates_distance(self):
+        """Test that edge distance is calculated from node positions"""
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 3.0, 4.0)  # Distance should be 5.0
+        self.network.add_edge(0, 1)
+
+        self.assertIn(1, self.network.adjacency[0])
+        self.assertAlmostEqual(self.network.adjacency[0][1], 5.0)
+
+    def test_add_edge_with_explicit_distance(self):
+        """Test adding edge with explicit distance"""
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 10.0, 0.0)
+        self.network.add_edge(0, 1, distance=15.0)
+
+        self.assertAlmostEqual(self.network.adjacency[0][1], 15.0)
+
+    def test_add_edge_bidirectional(self):
+        """Test that bidirectional edges are created by default"""
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 10.0, 0.0)
+        self.network.add_edge(0, 1, bidirectional=True)
+
+        self.assertIn(1, self.network.adjacency[0])
+        self.assertIn(0, self.network.adjacency[1])
+        self.assertEqual(self.network.adjacency[0][1],
+                         self.network.adjacency[1][0])
+
+    def test_add_edge_unidirectional(self):
+        """Test adding unidirectional edge"""
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 10.0, 0.0)
+        self.network.add_edge(0, 1, bidirectional=False)
+
+        self.assertIn(1, self.network.adjacency[0])
+        self.assertNotIn(0, self.network.adjacency[1])
+
+    def test_get_neighbors_empty(self):
+        """Test getting neighbors of node with no edges"""
+        self.network.add_node(0, 0.0, 0.0)
+        neighbors = self.network.get_neighbors(0)
+        self.assertEqual(len(neighbors), 0)
+
+    def test_get_neighbors_nonexistent_node(self):
+        """Test getting neighbors of nonexistent node"""
+        neighbors = self.network.get_neighbors(999)
+        self.assertEqual(len(neighbors), 0)
+
+    def test_get_neighbors(self):
+        """Test getting neighbors of a node"""
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 10.0, 0.0)
+        self.network.add_node(2, 20.0, 0.0)
+        self.network.add_edge(0, 1)
+        self.network.add_edge(0, 2)
+
+        neighbors = self.network.get_neighbors(0)
+        self.assertEqual(len(neighbors), 2)
+        self.assertIn(1, neighbors)
+        self.assertIn(2, neighbors)
+
+
+class TestShortestPath(unittest.TestCase):
+    """Test shortest path algorithms"""
+
+    def setUp(self):
+        """Create a simple network for testing"""
+        self.network = Network()
+
+        # Create a simple line: 0--10--1--10--2
+        self.network.add_node(0, 0.0, 0.0)
+        self.network.add_node(1, 10.0, 0.0)
+        self.network.add_node(2, 20.0, 0.0)
+        self.network.add_edge(0, 1)
+        self.network.add_edge(1, 2)
+
+    def test_shortest_path_same_node(self):
+        """Test shortest path from node to itself"""
+        path, dist = self.network.shortest_path(0, 0)
+        self.assertEqual(path, [0])
+        self.assertEqual(dist, 0.0)
+
+    def test_shortest_path_distance_same_node(self):
+        """Test shortest path distance from node to itself"""
+        dist = self.network.shortest_path_distance(0, 0)
+        self.assertEqual(dist, 0.0)
+
+    def test_shortest_path_direct_edge(self):
+        """Test shortest path over single edge"""
+        path, dist = self.network.shortest_path(0, 1)
+        self.assertEqual(path, [0, 1])
+        self.assertAlmostEqual(dist, 10.0)
+
+    def test_shortest_path_multiple_edges(self):
+        """Test shortest path over multiple edges"""
+        path, dist = self.network.shortest_path(0, 2)
+        self.assertEqual(path, [0, 1, 2])
+        self.assertAlmostEqual(dist, 20.0)
+
+    def test_shortest_path_nonexistent_start(self):
+        """Test shortest path with nonexistent start node"""
+        with self.assertRaises(ValueError):
+            self.network.shortest_path(999, 0)
+
+    def test_shortest_path_nonexistent_end(self):
+        """Test shortest path with nonexistent end node"""
+        with self.assertRaises(ValueError):
+            self.network.shortest_path(0, 999)
+
+    def test_shortest_path_disconnected(self):
+        """Test shortest path between disconnected nodes"""
+        self.network.add_node(3, 30.0, 0.0)  # Isolated node
+
+        path, dist = self.network.shortest_path(0, 3)
+        self.assertEqual(path, [])
+        self.assertEqual(dist, float('inf'))
+
+    def test_shortest_path_distance_disconnected(self):
+        """Test shortest path distance between disconnected nodes"""
+        self.network.add_node(3, 30.0, 0.0)  # Isolated node
+
+        dist = self.network.shortest_path_distance(0, 3)
+        self.assertEqual(dist, float('inf'))
+
+    def test_shortest_path_with_shortcut(self):
+        """Test that shortest path finds shortcuts"""
+        # Add a direct edge 0->2 with shorter distance
+        self.network.add_edge(0, 2, distance=15.0)
+
+        path, dist = self.network.shortest_path(0, 2)
+        # Should take direct route, not via node 1
+        self.assertEqual(path, [0, 2])
+        self.assertAlmostEqual(dist, 15.0)
+
+
+class TestComplexNetworks(unittest.TestCase):
+    """Test with more complex network topologies"""
+
+    def test_grid_network(self):
+        """Test shortest path in a grid network"""
+        network = Network()
+
+        # Create 3x3 grid:
+        # 0---1---2
+        # |   |   |
+        # 3---4---5
+        # |   |   |
+        # 6---7---8
+
+        for i in range(9):
+            row = i // 3
+            col = i % 3
+            network.add_node(i, col * 10.0, row * 10.0)
+
+        # Horizontal edges
+        for row in [0, 3, 6]:
+            for i in range(2):
+                network.add_edge(row + i, row + i + 1)
+
+        # Vertical edges
+        for col in range(3):
+            network.add_edge(col, col + 3)
+            network.add_edge(col + 3, col + 6)
+
+        # Test path from corner to corner
+        path, dist = network.shortest_path(0, 8)
+        self.assertEqual(len(path), 5)  # Should go through 4 intermediate nodes
+        self.assertAlmostEqual(dist, 40.0)  # 4 edges of length 10
+
+    def test_grid_with_diagonal(self):
+        """Test that diagonal shortcuts are found"""
+        network = Network()
+
+        # Create 3x3 grid with diagonal shortcut
+        for i in range(9):
+            row = i // 3
+            col = i % 3
+            network.add_node(i, col * 10.0, row * 10.0)
+
+        # Add edges as before
+        for row in [0, 3, 6]:
+            for i in range(2):
+                network.add_edge(row + i, row + i + 1)
+        for col in range(3):
+            network.add_edge(col, col + 3)
+            network.add_edge(col + 3, col + 6)
+
+        # Add diagonal shortcut from 0 to 8
+        network.add_edge(0, 8, distance=20.0)
+
+        path, dist = network.shortest_path(0, 8)
+        self.assertEqual(path, [0, 8])  # Should take diagonal
+        self.assertAlmostEqual(dist, 20.0)
+
+    def test_weighted_edges(self):
+        """Test that algorithm respects edge weights"""
+        network = Network()
+
+        # Create triangle: 0--1--2 with edge back 0--2
+        network.add_node(0, 0.0, 0.0)
+        network.add_node(1, 10.0, 0.0)
+        network.add_node(2, 5.0, 10.0)
+
+        network.add_edge(0, 1, distance=10.0)
+        network.add_edge(1, 2, distance=10.0)
+        network.add_edge(0, 2, distance=25.0)  # Longer direct route
+
+        # Should go via node 1
+        path, dist = network.shortest_path(0, 2)
+        self.assertEqual(path, [0, 1, 2])
+        self.assertAlmostEqual(dist, 20.0)
+
+    def test_multiple_paths_same_length(self):
+        """Test with multiple equally short paths"""
+        network = Network()
+
+        # Create diamond:
+        #     1
+        #    / \
+        #   0   3
+        #    \ /
+        #     2
+
+        network.add_node(0, 0.0, 5.0)
+        network.add_node(1, 5.0, 10.0)
+        network.add_node(2, 5.0, 0.0)
+        network.add_node(3, 10.0, 5.0)
+
+        network.add_edge(0, 1, distance=10.0)
+        network.add_edge(0, 2, distance=10.0)
+        network.add_edge(1, 3, distance=10.0)
+        network.add_edge(2, 3, distance=10.0)
+
+        path, dist = network.shortest_path(0, 3)
+        # Should find one of the two equally short paths
+        self.assertAlmostEqual(dist, 20.0)
+        self.assertIn(len(path), [3])  # 3 nodes in path
+        self.assertEqual(path[0], 0)
+        self.assertEqual(path[-1], 3)
+
+
+class TestNetworkRepr(unittest.TestCase):
+    """Test network string representation"""
+
+    def test_empty_network_repr(self):
+        """Test repr of empty network"""
+        network = Network()
+        repr_str = repr(network)
+        self.assertIn("0 nodes", repr_str)
+        self.assertIn("0 edges", repr_str)
+
+    def test_network_with_nodes_repr(self):
+        """Test repr with nodes and edges"""
+        network = Network()
+        network.add_node(0, 0.0, 0.0)
+        network.add_node(1, 10.0, 0.0)
+        network.add_node(2, 15.0, 0.0)
+        network.add_edge(0, 1)
+        network.add_edge(0, 2)
+
+        repr_str = repr(network)
+        self.assertIn("3 nodes", repr_str)
+        self.assertIn("2 edges", repr_str)  # Bidirectional = 2 edges
+
+
+class TestEdgeCases(unittest.TestCase):
+    """Test edge cases and error conditions"""
+
+    def test_add_edge_to_same_node(self):
+        """Test adding self-loop"""
+        network = Network()
+        network.add_node(0, 0.0, 0.0)
+        network.add_edge(0, 0, distance=5.0)
+
+        self.assertIn(0, network.adjacency[0])
+        self.assertEqual(network.adjacency[0][0], 5.0)
+
+    def test_overwrite_edge(self):
+        """Test that adding edge twice overwrites"""
+        network = Network()
+        network.add_node(0, 0.0, 0.0)
+        network.add_node(1, 10.0, 0.0)
+
+        network.add_edge(0, 1, distance=10.0)
+        network.add_edge(0, 1, distance=20.0)  # Overwrite
+
+        self.assertEqual(network.adjacency[0][1], 20.0)
+
+    def test_large_network_performance(self):
+        """Test that algorithm works with larger networks"""
+        network = Network()
+
+        # Create a line of 100 nodes
+        for i in range(100):
+            network.add_node(i, i * 10.0, 0.0)
+
+        for i in range(99):
+            network.add_edge(i, i + 1)
+
+        # Should handle this efficiently
+        path, dist = network.shortest_path(0, 99)
+        self.assertEqual(len(path), 100)
+        self.assertAlmostEqual(dist, 990.0)
+
+    def test_negative_coordinates(self):
+        """Test nodes with negative coordinates"""
+        network = Network()
+        network.add_node(0, -10.0, -5.0)
+        network.add_node(1, 10.0, 5.0)
+        network.add_edge(0, 1)
+
+        # Distance should be sqrt(400 + 100) = sqrt(500) ≈ 22.36
+        expected_dist = math.sqrt(400 + 100)
+        self.assertAlmostEqual(network.adjacency[0][1], expected_dist, places=2)
 
 
 if __name__ == '__main__':

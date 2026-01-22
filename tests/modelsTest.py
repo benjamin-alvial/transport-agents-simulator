@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from parcel_delivery.models.bid import Bid
 from parcel_delivery.models.parcel import Parcel
 from parcel_delivery.models.stop import Stop
+from parcel_delivery.models.node import Node
 
 
 class TestParcel(unittest.TestCase):
@@ -399,7 +400,7 @@ class TestModelIntegration(unittest.TestCase):
         self.assertEqual(delivery_stop.parcel.state, "BEING_DELIVERED")
 
     def test_bid_comparison_for_winner_selection(self):
-        """Test comparing bids to find lowest value (winner)"""
+        """Test comparing bids to find the lowest value (winner)"""
         courier1 = Mock()
         courier1.agent_id = "courier1"
         courier2 = Mock()
@@ -475,6 +476,31 @@ class TestModelIntegration(unittest.TestCase):
         # Bid above starting price (should be rejected)
         high_bid = Bid(courier, auction, 20.0)
         self.assertGreater(high_bid.value, auction.starting_price)
+
+
+class TestNode(unittest.TestCase):
+    """Test cases for the Node class"""
+
+    def test_node_creation(self):
+        """Test basic node creation"""
+        node = Node(node_id=1, x=10.0, y=20.0)
+        self.assertEqual(node.node_id, 1)
+        self.assertEqual(node.x, 10.0)
+        self.assertEqual(node.y, 20.0)
+        self.assertEqual(node.label, "")
+
+    def test_node_with_label(self):
+        """Test node creation with label"""
+        node = Node(node_id=1, x=10.0, y=20.0, label="Depot")
+        self.assertEqual(node.label, "Depot")
+
+    def test_node_repr(self):
+        """Test node string representation"""
+        node1 = Node(node_id=1, x=10.0, y=20.0)
+        self.assertIn("Node(1", repr(node1))
+
+        node2 = Node(node_id=2, x=5.0, y=5.0, label="Store")
+        self.assertIn("Store", repr(node2))
 
 
 if __name__ == '__main__':

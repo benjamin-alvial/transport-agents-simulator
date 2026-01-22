@@ -259,7 +259,7 @@ class TestCourier(unittest.TestCase):
         self.assertEqual(self.courier.position, 0)
         self.assertEqual(self.courier.capacity, 20)
         self.assertEqual(self.courier.speed, 30.0)
-        self.assertEqual(len(self.courier.schedule), 0)
+        self.assertEqual(len(self.courier.itinerary), 0)
         self.assertEqual(self.courier.current_load, 0)
         self.assertEqual(len(self.courier.carried_parcels), 0)
 
@@ -322,8 +322,8 @@ class TestCourier(unittest.TestCase):
             self.courier.handle_winner_notification(msg)
 
         # Should add stop to schedule
-        self.assertEqual(len(self.courier.schedule), 1)
-        self.assertEqual(self.courier.schedule[0].location, 50)
+        self.assertEqual(len(self.courier.itinerary), 1)
+        self.assertEqual(self.courier.itinerary[0].location, 50)
 
         # Should schedule start_delivery
         self.assertEqual(len(self.kernel.event_queue), 1)
@@ -334,7 +334,7 @@ class TestCourier(unittest.TestCase):
             self.courier.handle_loser_notification()
 
         # Should not add stop to schedule
-        self.assertEqual(len(self.courier.schedule), 0)
+        self.assertEqual(len(self.courier.itinerary), 0)
 
         # Should not schedule start_delivery
         self.assertEqual(len(self.kernel.event_queue), 0)
@@ -363,7 +363,7 @@ class TestCourier(unittest.TestCase):
         """Test start_delivery schedules travel to next stop"""
         parcel = Parcel("laptop", 100, 200, 5.0, 15.0)
         stop = Stop(100, "WAITING_PICK_UP", parcel)
-        self.courier.schedule.append(stop)
+        self.courier.itinerary.append(stop)
 
         with patch('sys.stdout', new=StringIO()):
             self.courier.start_delivery()
@@ -377,7 +377,7 @@ class TestCourier(unittest.TestCase):
         """Test courier arrives at pickup stop"""
         parcel = Parcel("laptop", 100, 200, 5.0, 15.0)
         stop = Stop(100, "WAITING_PICK_UP", parcel)
-        self.courier.schedule.append(stop)
+        self.courier.itinerary.append(stop)
 
         with patch('sys.stdout', new=StringIO()):
             self.courier.arrive_at_stop(stop)
@@ -392,8 +392,8 @@ class TestCourier(unittest.TestCase):
         self.assertEqual(parcel.state, "BEING_DELIVERED")
 
         # Delivery stop should be added
-        self.assertEqual(len(self.courier.schedule), 1)
-        self.assertEqual(self.courier.schedule[0].location, 200)
+        self.assertEqual(len(self.courier.itinerary), 1)
+        self.assertEqual(self.courier.itinerary[0].location, 200)
 
     def test_arrive_at_stop_delivery(self):
         """Test courier arrives at delivery stop"""
@@ -402,7 +402,7 @@ class TestCourier(unittest.TestCase):
         self.courier.carried_parcels.append(parcel)
 
         stop = Stop(200, "BEING_DELIVERED", parcel)
-        self.courier.schedule.append(stop)
+        self.courier.itinerary.append(stop)
         self.courier.position = 200
 
         with patch('sys.stdout', new=StringIO()):
