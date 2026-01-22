@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Optional
 
 from parcel_delivery.agents.auction import Auction
 from parcel_delivery.simulation.message import Message
@@ -13,9 +13,10 @@ class Courier(Agent):
     Agent that delivers Parcels.
     """
 
-    def __init__(self, agent_id: str, position: int, capacity: int, speed: float):
+    def __init__(self, agent_id: str, start_node: int, capacity: int, speed: float):
         super().__init__(agent_id)
-        self.position: int = position
+        self.current_node: Optional[int] = start_node
+        self.target_node: Optional[int] = None
         self.capacity: int = capacity
         self.speed: float = speed
         self.itinerary: List[Stop] = []
@@ -57,7 +58,7 @@ class Courier(Agent):
         """ Prints happy message and adds parcel to itinerary and vehicle."""
         print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Won the auction.")
         parcel = message.content["parcel"]
-        self.itinerary.append(Stop(parcel.origin, parcel.state, parcel))
+        self.itinerary.append(Stop(parcel.origin_node_id, parcel.state, parcel))
         self.schedule_action(delay=0.0, action=self.start_delivery)
 
     def handle_loser_notification(self):
@@ -89,20 +90,29 @@ class Courier(Agent):
             # Next stop is just first in itinerary
             next_stop = self.itinerary[0]
 
+            # Calculate the path of nodes that must be traveled to reach the destination stop.
+            path = self.sim.network.shortest_path(self.current_node, next_stop.location_node_id)
+            path_sequence = path[0]
+            distance = path[1]
+
             # Calculate travel time between current position and next stop location
-            distance = abs(next_stop.location - self.position)
             travel_time = distance / self.speed
 
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Traveling from {self.position} to {next_stop.location} (will take {travel_time:.1f}s)")
+            # Starts traveling
+            print(f"[t={self.sim.current_time}] {self.agent_id}: Traveling {self.current_node}->{next_stop.location_node_id} with the sequence {path_sequence} (will take {travel_time:.1f}s)")
+            self.current_node = None
+            self.target_node = next_stop.location_node_id
             self.schedule_action(travel_time, self.arrive_at_stop, {"stop": next_stop})
 
-    def arrive_at_stop(self, stop):
+    def arrive_at_stop(self, stop: "Stop"):
         """"
         Courier arrives at a Stop and parcel is picked up or delivered.
         """
         # Update the courier's position
-        self.position = stop.location
-        print(f"[t={self.sim.current_time}] {self.agent_id}: Arrived at {self.position}")
+        self.current_node = stop.location_node_id
+        print(f"[t={self.sim.current_time}] {self.agent_id}: Arrived at {self.target_node}")
+        self.target_node = None
+
 
         # Remove from itinerary
         self.itinerary.pop(0)
@@ -111,13 +121,13 @@ class Courier(Agent):
         stop_type = stop.stop_type
         if stop_type == "WAITING_PICK_UP":
             pick_up_parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Picked up parcel at {stop.location}")
+            print(f"[t={self.sim.current_time}] {self.agent_id}: Picked up parcel at {stop.location_node_id}")
             self.carried_parcels.append(pick_up_parcel)
             pick_up_parcel.state = "BEING_DELIVERED"
-            self.itinerary.append(Stop(pick_up_parcel.destination, pick_up_parcel.state, pick_up_parcel))
+            self.itinerary.append(Stop(pick_up_parcel.destination_node_id, pick_up_parcel.state, pick_up_parcel))
         elif stop_type == "BEING_DELIVERED":
             drop_off_parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Delivered parcel at {stop.location}")
+            print(f"[t={self.sim.current_time}] {self.agent_id}: Delivered parcel at {stop.location_node_id}")
             self.carried_parcels.remove(drop_off_parcel)
             drop_off_parcel.state = "DELIVERED"
 

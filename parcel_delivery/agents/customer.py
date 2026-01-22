@@ -12,9 +12,9 @@ class Customer(Agent):
     """
     Agent that requests delivery of a Parcel.
     """
-    def __init__(self, agent_id: str, location: int):
+    def __init__(self, agent_id: str, location_node_id: int):
         super().__init__(agent_id)
-        self.location = location
+        self.location_node_id: int = location_node_id
 
     def receive_message(self, message: "Message"):
         """
@@ -33,6 +33,11 @@ class Customer(Agent):
             parcel: parcel being requested for delivery
             platform: platform being requested for delivery
         """
+
+        if parcel.origin_node_id not in self.sim.network.nodes:
+            raise ValueError("Node not in network, parcel cannot be delivered")
+        if parcel.destination_node_id not in self.sim.network.nodes:
+            raise ValueError("Node not in network, parcel cannot be delivered")
 
         print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Sent DELIVERY_REQUEST for {parcel.contents} to {platform.agent_id}")
         self.send_message(receiver_id=platform.agent_id,
