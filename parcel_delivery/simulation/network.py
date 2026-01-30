@@ -1,28 +1,29 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 import heapq
 
+from parcel_delivery.models.edge import Edge
 from parcel_delivery.models.node import Node
 
 
 class Network:
     """
-    Road network representation using nodes and adjacency lists.
-    Supports shortest path calculation and visualization.
+    Road network representation using nodes and edge objects.
+    Supports shortest path calculation, congestion modeling, and visualization.
     """
 
     def __init__(self):
         self.nodes: Dict[int, "Node"] = {}
-        self.adjacency: Dict[int, Dict[int, float]] = {}
-        # adjacency[i][j] = distance from i to j
+        self.edges: Dict[int, Dict[int, "Edge"]] = {}
+        # edges[from_node][to_node] = Edge object
 
     def add_node(self, node_id: int, x_coord: float, y_coord: float, label: str = ""):
         """Add a node to the network"""
         self.nodes[node_id] = Node(node_id, x_coord, y_coord, label)
-        if node_id not in self.adjacency:
-            self.adjacency[node_id] = {}
+        if node_id not in self.edges:
+            self.edges[node_id] = {}
 
     def add_edge(self, from_node: int, to_node: int, distance: float = None,
-                 bidirectional: bool = False):
+                 capacity: float = 1000.0, bidirectional: bool = False):
         """
         Add an edge between two nodes.
 
@@ -30,6 +31,7 @@ class Network:
             from_node: Source node ID
             to_node: Target node ID
             distance: Edge length (if None, calculated from node positions)
+            capacity: Maximum vehicles per hour (default 1000)
             bidirectional: If True, add edge in both directions
         """
         # Ensure nodes exist
@@ -43,23 +45,73 @@ class Network:
             distance = ((n2.x - n1.x) ** 2 + (n2.y - n1.y) ** 2) ** 0.5
 
         # Add edge
-        if from_node not in self.adjacency:
-            self.adjacency[from_node] = {}
-        self.adjacency[from_node][to_node] = distance
+        if from_node not in self.edges:
+            self.edges[from_node] = {}
+
+        self.edges[from_node][to_node] = Edge(
+            from_node=from_node,
+            to_node=to_node,
+            distance=distance,
+            capacity=capacity
+        )
 
         if bidirectional:
-            if to_node not in self.adjacency:
-                self.adjacency[to_node] = {}
-            self.adjacency[to_node][from_node] = distance
+            if to_node not in self.edges:
+                self.edges[to_node] = {}
+            self.edges[to_node][from_node] = Edge(
+                from_node=to_node,
+                to_node=from_node,
+                distance=distance,
+                capacity=capacity
+            )
 
-    def get_neighbors(self, node_id: int) -> Dict[int, float]:
-        """Get all neighbors of a node with their distances"""
-        return self.adjacency.get(node_id, {})
+    def get_edge(self, from_node: int, to_node: int) -> Optional[Edge]:
+        """Get edge between two nodes, or None if doesn't exist"""
+        return self.edges.get(from_node, {}).get(to_node)
 
-    def shortest_path_distance(self, start: int, end: int) -> float:
+    def get_neighbors(self, node_id: int) -> List[int]:
+        """Get list of neighbor node IDs"""
+        return list(self.edges.get(node_id, {}).keys())
+
+    def add_flow(self, from_node: int, to_node: int, amount: float):
+        """Add traffic flow to an edge"""
+        edge = self.get_edge(from_node, to_node)
+        if edge:
+            edge.flow += amount
+
+    def remove_flow(self, from_node: int, to_node: int, amount: float):
+        """Remove traffic flow from an edge"""
+        edge = self.get_edge(from_node, to_node)
+        if edge:
+            edge.flow = max(0.0, edge.flow - amount)
+
+    def reset_flows(self):
+        """Reset all edge flows to zero"""
+        for node_edges in self.edges.values():
+            for edge in node_edges.values():
+                edge.flow = 0.0
+
+    def get_congested_edges(self, threshold: float = 0.8) -> List[Edge]:
+        """Get all edges above congestion threshold"""
+        congested = []
+        for node_edges in self.edges.values():
+            for edge in node_edges.values():
+                if edge.is_congested(threshold):
+                    congested.append(edge)
+        return congested
+
+    def shortest_path_distance(self, start: int, end: int,
+                               use_congestion: bool = False) -> float:
         """
         Calculate the shortest path distance using Dijkstra's algorithm.
-        Returns infinity if no path exists.
+
+        Args:
+            start: Start node ID
+            end: End node ID
+            use_congestion: If True, use congestion-adjusted travel times
+
+        Returns:
+            Shortest distance (or travel time if use_congestion=True)
         """
         if start == end:
             return 0.0
@@ -82,18 +134,34 @@ class Network:
             if node == end:
                 return dist
 
-            for neighbor, edge_dist in self.get_neighbors(node).items():
-                new_dist = dist + edge_dist
+            for neighbor in self.get_neighbors(node):
+                edge = self.edges[node][neighbor]
+
+                # Choose metric based on congestion flag
+                if use_congestion:
+                    edge_cost = edge.get_travel_time()
+                else:
+                    edge_cost = edge.distance
+
+                new_dist = dist + edge_cost
                 if neighbor not in distances or new_dist < distances[neighbor]:
                     distances[neighbor] = new_dist
                     heapq.heappush(pq, (new_dist, neighbor))
 
         return float('inf')  # No path found
 
-    def shortest_path(self, start: int, end: int) -> Tuple[List[int], float]:
+    def shortest_path(self, start: int, end: int,
+                      use_congestion: bool = False) -> Tuple[List[int], float]:
         """
         Calculate the shortest path using Dijkstra's algorithm.
-        Returns (path, distance) where path is list of node IDs.
+
+        Args:
+            start: Start node ID
+            end: End node ID
+            use_congestion: If True, use congestion-adjusted travel times
+
+        Returns:
+            (path, distance) where path is list of node IDs
         """
         if start == end:
             return [start], 0.0
@@ -116,8 +184,16 @@ class Network:
             if node == end:
                 return path, dist
 
-            for neighbor, edge_dist in self.get_neighbors(node).items():
-                new_dist = dist + edge_dist
+            for neighbor in self.get_neighbors(node):
+                edge = self.edges[node][neighbor]
+
+                # Choose metric based on congestion flag
+                if use_congestion:
+                    edge_cost = edge.get_travel_time()
+                else:
+                    edge_cost = edge.distance
+
+                new_dist = dist + edge_cost
                 if neighbor not in distances or new_dist < distances[neighbor]:
                     distances[neighbor] = new_dist
                     heapq.heappush(pq, (new_dist, neighbor, path + [neighbor]))
@@ -127,13 +203,21 @@ class Network:
     def visualize(self,
                   highlight_nodes=None,
                   highlight_edges=None,
-                  consolidation_points_positions=None):
+                  consolidation_points_positions=None,
+                  show_congestion=False):
         """
         Visualize the directed road network with distances and curved edges.
+
+        Args:
+            highlight_nodes: List of node IDs to highlight
+            highlight_edges: List of (from, to) tuples to highlight
+            consolidation_points_positions: Dict of {point_id: node_id}
+            show_congestion: If True, color edges by congestion level
         """
         try:
             import matplotlib.pyplot as plt
             from matplotlib.patches import FancyArrowPatch
+            import matplotlib.colors as mcolors
         except ImportError:
             print("matplotlib not installed. Install with: pip install matplotlib")
             return
@@ -141,18 +225,30 @@ class Network:
         fig, ax = plt.subplots(figsize=(10, 8))
 
         def is_bidirectional(u, v):
-            return v in self.adjacency and u in self.adjacency.get(v, {})
+            return v in self.edges and u in self.edges.get(v, {})
 
         # -------- Draw edges --------
-        for u, neighbors in self.adjacency.items():
+        for u, neighbors in self.edges.items():
             n1 = self.nodes[u]
 
-            for v, dist in neighbors.items():
+            for v, edge in neighbors.items():
                 n2 = self.nodes[v]
 
                 highlighted = highlight_edges and (u, v) in highlight_edges
-                color = "red" if highlighted else "gray"
-                width = 2 if highlighted else 1
+
+                if show_congestion and not highlighted:
+                    # Color by congestion ratio
+                    ratio = edge.congestion_ratio()
+                    if ratio < 0.5:
+                        color = "green"
+                    elif ratio < 0.8:
+                        color = "orange"
+                    else:
+                        color = "red"
+                    width = 1.5
+                else:
+                    color = "red" if highlighted else "gray"
+                    width = 2 if highlighted else 1
 
                 # Curve only if edge exists in both directions
                 rad = 0.25 if is_bidirectional(u, v) else 0.0
@@ -182,10 +278,17 @@ class Network:
                 norm = (dx ** 2 + dy ** 2) ** 0.5 or 1
 
                 offset = 0.35 * rad
+
+                # Show distance or flow/capacity if showing congestion
+                if show_congestion:
+                    label_text = f"{edge.flow:.0f}/{edge.capacity:.0f}"
+                else:
+                    label_text = f"{edge.distance:.1f}"
+
                 ax.text(
                     mx + offset * dx / norm,
                     my + offset * dy / norm,
-                    f"{dist:.1f}",
+                    label_text,
                     fontsize=8,
                     ha="center",
                     va="center",
@@ -204,7 +307,7 @@ class Network:
                        s=size, c=color, zorder=2,
                        edgecolors="black", linewidth=1.5)
 
-            label = node.label if getattr(node, "label", None) else str(node_id)
+            label = node.label if node.label else str(node_id)
             ax.text(node.x, node.y + 0.5, label,
                     ha="center", fontsize=9,
                     weight="bold" if highlighted else "normal")
@@ -219,7 +322,10 @@ class Network:
                                marker="s", edgecolors="darkgreen",
                                linewidth=2, label=f"CPoint {cid}")
 
-        ax.set_title("Road Network")
+        title = "Road Network"
+        if show_congestion:
+            title += " (Congestion: Green<50%, Orange<80%, Red≥80%)"
+        ax.set_title(title)
         ax.set_xlabel("X coordinate")
         ax.set_ylabel("Y coordinate")
         ax.set_aspect("equal")
@@ -232,6 +338,5 @@ class Network:
         plt.show()
 
     def __repr__(self):
-        return f"Network({len(self.nodes)} nodes, {sum(len(n) for n in self.adjacency.values())} edges)"
-
-
+        total_edges = sum(len(neighbors) for neighbors in self.edges.values())
+        return f"Network({len(self.nodes)} nodes, {total_edges} edges)"
