@@ -73,6 +73,13 @@ class Network:
         """Get list of neighbor node IDs"""
         return list(self.edges.get(node_id, {}).keys())
 
+    def add_flows(self, path: List[int], amount: float):
+        """Add traffic flows to a list of edges"""
+        for i in range(0,len(path)-1):
+            edge = self.get_edge(path[i], path[i+1])
+            if edge:
+                edge.flow += amount
+
     def add_flow(self, from_node: int, to_node: int, amount: float):
         """Add traffic flow to an edge"""
         edge = self.get_edge(from_node, to_node)
@@ -151,54 +158,57 @@ class Network:
         return float('inf')  # No path found
 
     def shortest_path(self, start: int, end: int,
-                      use_congestion: bool = False) -> Tuple[List[int], float]:
+                      use_congestion: bool = False) -> Tuple[List[int], List, float]:
         """
         Calculate the shortest path using Dijkstra's algorithm.
 
-        Args:
-            start: Start node ID
-            end: End node ID
-            use_congestion: If True, use congestion-adjusted travel times
-
         Returns:
-            (path, distance) where path is list of node IDs
+            (path_nodes, path_edges, distance)
         """
         if start == end:
-            return [start], 0.0
+            return [start], [], 0.0
 
         if start not in self.nodes or end not in self.nodes:
             raise ValueError(f"Nodes {start} and {end} must exist")
 
-        # Priority queue: (distance, node, path)
-        pq = [(0.0, start, [start])]
+        # Priority queue: (distance, node, path_nodes, path_edges)
+        pq = [(0.0, start, [start], [])]
         distances = {start: 0.0}
         visited = set()
 
         while pq:
-            dist, node, path = heapq.heappop(pq)
+            dist, node, path_nodes, path_edges = heapq.heappop(pq)
 
             if node in visited:
                 continue
             visited.add(node)
 
             if node == end:
-                return path, dist
+                return path_nodes, path_edges, dist
 
             for neighbor in self.get_neighbors(node):
                 edge = self.edges[node][neighbor]
 
-                # Choose metric based on congestion flag
-                if use_congestion:
-                    edge_cost = edge.get_travel_time()
-                else:
-                    edge_cost = edge.distance
+                edge_cost = (
+                    edge.get_travel_time()
+                    if use_congestion
+                    else edge.distance
+                )
 
                 new_dist = dist + edge_cost
                 if neighbor not in distances or new_dist < distances[neighbor]:
                     distances[neighbor] = new_dist
-                    heapq.heappush(pq, (new_dist, neighbor, path + [neighbor]))
+                    heapq.heappush(
+                        pq,
+                        (
+                            new_dist,
+                            neighbor,
+                            path_nodes + [neighbor],
+                            path_edges + [edge],
+                        ),
+                    )
 
-        return [], float('inf')  # No path found
+        return [], [], float('inf')  # No path found
 
     def visualize(self,
                   highlight_nodes=None,

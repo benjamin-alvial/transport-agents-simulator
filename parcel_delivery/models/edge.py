@@ -34,3 +34,6 @@ class Edge:
     def is_congested(self, threshold: float = 0.8) -> bool:
         """Check if edge is above congestion threshold"""
         return self.congestion_ratio() > threshold
+
+    def __repr__(self):
+        return f"{self.from_node}->{self.to_node}"

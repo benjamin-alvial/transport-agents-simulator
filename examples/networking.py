@@ -41,14 +41,14 @@ if __name__ == "__main__":
     network.add_edge(4,0)
 
     print(f"Network: {network}")
-    path, dist = network.shortest_path(0, 8)
-    print(f"Shortest path 0->8: {path} (distance: {dist:.2f})")
+    path_nodes, path_edges, dist = network.shortest_path(0, 8)
+    print(f"Shortest path 0->8: {path_nodes} through {path_edges} (distance: {dist:.2f})")
 
     # Visualize
     print("\nGenerating visualization...")
     network.visualize(
         highlight_nodes=[0, 8],
-        highlight_edges=[(path[i], path[i + 1]) for i in range(len(path) - 1)],
+        highlight_edges=[(path_nodes[i], path_nodes[i + 1]) for i in range(len(path_nodes) - 1)],
         consolidation_points_positions={"C1": 0, "C2": 8}
     )
     network.visualize()
@@ -84,3 +84,7 @@ if __name__ == "__main__":
     print("Starting simulation...\n")
     sim.run(until=100.0)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
+
+    for u, neighbors in sim.network.edges.items():
+        for v, edge in neighbors.items():
+            print(f"{edge}: flow = {edge.flow}")

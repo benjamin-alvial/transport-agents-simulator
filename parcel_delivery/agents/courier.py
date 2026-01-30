@@ -92,14 +92,18 @@ class Courier(Agent):
 
             # Calculate the path of nodes that must be traveled to reach the destination stop.
             path = self.sim.network.shortest_path(self.current_node, next_stop.location_node_id)
-            path_sequence = path[0]
-            distance = path[1]
+            path_nodes = path[0]
+            path_edges = path[1]
+            distance = path[2]
 
             # Calculate travel time between current position and next stop location
             travel_time = distance / self.speed
 
+            # Assign flows
+            self.sim.network.add_flows(path_nodes, 1)
+
             # Starts traveling
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Traveling {self.current_node}->{next_stop.location_node_id} with the sequence {path_sequence} (will take {travel_time:.1f}s)")
+            print(f"[t={self.sim.current_time}] {self.agent_id}: Traveling {self.current_node}->{next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges} (will take {travel_time:.1f}s)")
             self.current_node = None
             self.target_node = next_stop.location_node_id
             self.schedule_action(travel_time, self.arrive_at_stop, {"stop": next_stop})
