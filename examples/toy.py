@@ -24,7 +24,7 @@ if __name__ == "__main__":
     network.add_edge(0, 1)
     network.add_edge(1, 2)
     network.add_edge(2, 3)
-    network.add_edge(4, 1)
+    # network.add_edge(4, 1)
     network.add_edge(4, 2, 0.35)
 
     print(f"Network: {network}")
@@ -84,3 +84,5 @@ if __name__ == "__main__":
             print(f"{edge}: flow = {edge.flow}")
 
     network.visualize(show_congestion=True)
+
+    network.calculate_delay(bus_123.nodes_sequence)
