@@ -23,7 +23,7 @@ class Network:
             self.edges[node_id] = {}
 
     def add_edge(self, from_node: int, to_node: int, distance: float = None,
-                 capacity: float = 1000.0, bidirectional: bool = False):
+                 capacity: float = 10.0, bidirectional: bool = False):
         """
         Add an edge between two nodes.
 
@@ -31,7 +31,7 @@ class Network:
             from_node: Source node ID
             to_node: Target node ID
             distance: Edge length (if None, calculated from node positions)
-            capacity: Maximum vehicles per hour (default 1000)
+            capacity: Maximum vehicles per hour (default 10)
             bidirectional: If True, add edge in both directions
         """
         # Ensure nodes exist
@@ -66,7 +66,7 @@ class Network:
             )
 
     def get_edge(self, from_node: int, to_node: int) -> Optional[Edge]:
-        """Get edge between two nodes, or None if doesn't exist"""
+        """Get edge between two nodes, or None if it doesn't exist"""
         return self.edges.get(from_node, {}).get(to_node)
 
     def get_neighbors(self, node_id: int) -> List[int]:

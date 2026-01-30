@@ -7,7 +7,7 @@ with platforms, customers, and couriers.
 
 # Import from submodules to make them available at package level
 from .agents import Agent, Courier, Customer, Platform
-from .models import Parcel, Stop, Node, Edge, Bid
+from .models import Parcel, Stop, Node, Edge, Bid, Bus
 from .simulation import Event, Kernel, Message, Network
 
 # Package metadata
@@ -28,4 +28,5 @@ __all__ = [
     "Network",
     "Edge",
     "Bid",
+    "Bus",
 ]

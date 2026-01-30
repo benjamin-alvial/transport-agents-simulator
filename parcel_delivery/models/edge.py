@@ -8,7 +8,7 @@ class Edge:
     to_node: int
     distance: float
     capacity: float = 10.0
-    flow: float = 8.0
+    flow: float = 7.0
 
     def get_travel_time(self, base_speed: float = 50.0) -> float:
         """
