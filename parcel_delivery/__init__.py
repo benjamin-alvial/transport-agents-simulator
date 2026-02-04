@@ -26,6 +26,7 @@ __all__ = [
     "Customer",
     "Platform",
     "Edge",
+    "Network",
     "Node",
     "Bid",
     "Parcel",
