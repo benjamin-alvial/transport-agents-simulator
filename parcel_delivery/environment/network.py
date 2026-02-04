@@ -1,8 +1,8 @@
 from typing import Dict, List, Tuple, Optional
 import heapq
 
-from parcel_delivery.models.edge import Edge
-from parcel_delivery.models.node import Node
+from parcel_delivery.environment.edge import Edge
+from parcel_delivery.environment.node import Node
 
 
 class Network:

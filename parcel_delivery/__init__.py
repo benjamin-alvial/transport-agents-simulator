@@ -1,14 +1,14 @@
 """
 Parcel Delivery Simulation
 
-A discrete-event simulation framework for modeling parcel delivery systems
-with platforms, customers, and couriers.
+A discrete-event core framework for modeling parcel delivery systems.
 """
 
 # Import from submodules to make them available at package level
-from .agents import Agent, Courier, Customer, Platform
-from .models import Parcel, Stop, Node, Edge, Bid, Bus
-from .simulation import Event, Kernel, Message, Network
+from .core import Agent, Entity, Event, Kernel, Message
+from .entities import Auction, Bus, Courier, Customer, Platform
+from .environment import Edge, Network, Node
+from .models import Bid, Parcel, Stop
 
 # Package metadata
 __version__ = "0.1.0"
@@ -16,17 +16,18 @@ __version__ = "0.1.0"
 # Define public API
 __all__ = [
     "Agent",
-    "Courier",
-    "Customer",
-    "Platform",
-    "Parcel",
-    "Stop",
+    "Entity",
     "Event",
     "Kernel",
     "Message",
-    "Node",
-    "Network",
-    "Edge",
-    "Bid",
+    "Auction",
     "Bus",
+    "Courier",
+    "Customer",
+    "Platform",
+    "Edge",
+    "Node",
+    "Bid",
+    "Parcel",
+    "Stop",
 ]

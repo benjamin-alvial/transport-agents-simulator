@@ -1,9 +1,9 @@
 import random
 from typing import List, Optional
 
-from parcel_delivery.agents.auction import Auction
-from parcel_delivery.simulation.message import Message
-from parcel_delivery.agents.agent import Agent
+from parcel_delivery.entities.auction import Auction
+from parcel_delivery.core.message import Message
+from parcel_delivery.core.agent import Agent
 from parcel_delivery.models.bid import Bid
 from parcel_delivery.models.stop import Stop
 from parcel_delivery.models.parcel import Parcel
@@ -13,8 +13,8 @@ class Courier(Agent):
     Agent that delivers Parcels.
     """
 
-    def __init__(self, agent_id: str, start_node: int, capacity: int, speed: float):
-        super().__init__(agent_id)
+    def __init__(self, entity_id: str, start_node: int, capacity: int, speed: float):
+        super().__init__(entity_id)
         self.current_node: Optional[int] = start_node
         self.target_node: Optional[int] = None
         self.capacity: int = capacity
@@ -25,8 +25,10 @@ class Courier(Agent):
 
     def receive_message(self, message: "Message"):
         """
-        Handle incoming message. Courier can receive: AUCTION_NOTIFICATION message from Platform or
-        WINNER_NOTIFICATION message from Platform.
+        Handle incoming message.
+        Courier can receive:
+            AUCTION_NOTIFICATION message from Platform or
+            WINNER_NOTIFICATION message from Platform.
 
         Args:
             message: The incoming message
@@ -42,7 +44,7 @@ class Courier(Agent):
         """"
         Receives a notification that a new auction for a parcel has started.
         """
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Received auction notification.")
+        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Received auction notification.")
         auction = message.content["auction"]
         parcel = auction.auctioned_parcel
 
@@ -51,19 +53,19 @@ class Courier(Agent):
             BID_VALUE = random.randint(1, 10)
             bid = Bid(self, auction, BID_VALUE)
 
-            print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
+            print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
             self.schedule_action(delay=5.0, action=self.send_bid_request, data={"bid": bid, "auction": auction})
 
     def handle_winner_notification(self, message: "Message"):
         """ Prints happy message and adds parcel to itinerary and vehicle."""
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Won the auction.")
+        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Won the auction.")
         parcel = message.content["parcel"]
         self.itinerary.append(Stop(parcel.origin_node_id, parcel.state, parcel))
         self.schedule_action(delay=0.0, action=self.start_delivery)
 
     def handle_loser_notification(self):
         """ Prints sad message."""
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Lost the auction.")
+        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Lost the auction.")
 
     def send_bid_request(self, bid: "Bid", auction: "Auction"):
         """
@@ -73,8 +75,8 @@ class Courier(Agent):
             bid: The bid to send
             auction: The auction to be bid on
         """
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Sent BID_REQUEST for {auction.auctioned_parcel.contents} for value {bid.value}")
-        self.send_message(receiver_id=auction.agent_id,
+        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Sent BID_REQUEST for {auction.auctioned_parcel.contents} for value {bid.value}")
+        self.send_message(receiver_id=auction.entity_id,
                           msg_type="BID_REQUEST",
                           content={"bid": bid},
                           delay=0.0)
@@ -84,7 +86,7 @@ class Courier(Agent):
         Starts the delivery of the scheduled parcel pick-ups and deliveries.
         """
         if not self.itinerary:
-            print(f"[t={self.sim.current_time}] {self.agent_id}: All deliveries complete!")
+            print(f"[t={self.sim.current_time}] {self.entity_id}: All deliveries complete!")
 
         else:
             # Next stop is just first in itinerary
@@ -103,7 +105,7 @@ class Courier(Agent):
             self.sim.network.add_flows(path_nodes, 1)
 
             # Starts traveling
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Traveling {self.current_node}->{next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges} (will take {travel_time:.1f}s)")
+            print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling {self.current_node}->{next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges} (will take {travel_time:.1f}s)")
             self.current_node = None
             self.target_node = next_stop.location_node_id
             self.schedule_action(travel_time, self.arrive_at_stop, {"stop": next_stop})
@@ -114,7 +116,7 @@ class Courier(Agent):
         """
         # Update the courier's position
         self.current_node = stop.location_node_id
-        print(f"[t={self.sim.current_time}] {self.agent_id}: Arrived at {self.target_node}")
+        print(f"[t={self.sim.current_time}] {self.entity_id}: Arrived at {self.target_node}")
         self.target_node = None
 
 
@@ -125,13 +127,13 @@ class Courier(Agent):
         stop_type = stop.stop_type
         if stop_type == "WAITING_PICK_UP":
             pick_up_parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Picked up parcel at {stop.location_node_id}")
+            print(f"[t={self.sim.current_time}] {self.entity_id}: Picked up parcel at {stop.location_node_id}")
             self.carried_parcels.append(pick_up_parcel)
             pick_up_parcel.state = "BEING_DELIVERED"
             self.itinerary.append(Stop(pick_up_parcel.destination_node_id, pick_up_parcel.state, pick_up_parcel))
         elif stop_type == "BEING_DELIVERED":
             drop_off_parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.agent_id}: Delivered parcel at {stop.location_node_id}")
+            print(f"[t={self.sim.current_time}] {self.entity_id}: Delivered parcel at {stop.location_node_id}")
             self.carried_parcels.remove(drop_off_parcel)
             drop_off_parcel.state = "DELIVERED"
 

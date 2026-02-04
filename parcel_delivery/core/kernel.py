@@ -1,15 +1,16 @@
 import heapq
 from typing import List, Dict, Optional, Callable, Any
 
-from parcel_delivery.agents.agent import Agent
-from parcel_delivery.simulation.event import Event
-from parcel_delivery.simulation.message import Message
-from parcel_delivery.simulation.network import Network
+from parcel_delivery.core.agent import Agent
+from parcel_delivery.core.entity import Entity
+from parcel_delivery.core.event import Event
+from parcel_delivery.core.message import Message
+from parcel_delivery.environment.network import Network
 
 
 class Kernel:
     """
-    The core DES engine. Manages the event queue and simulation clock and keeps track of agents.
+    The simulation DES engine. Manages the event queue and simulation clock and keeps track of entities.
     """
 
     def __init__(self):
@@ -17,32 +18,32 @@ class Kernel:
         self.event_queue: List["Event"] = []
         self.event_counter: int = 0
         self.running: bool = False
-        self.agents: Dict[str, "Agent"] = {}
+        self.entities: Dict[str, "Entity"] = {}
         self.network: Optional["Network"] = None
 
-    def register_agent(self, agent: "Agent"):
+    def register_entity(self, entity: "Entity"):
         """
-        Register an agent within the simulation.
+        Register an entity within the core.
 
         Args:
-            agent: The agent to be registered
+            entity: The entity to be registered
         """
-        if agent.agent_id in self.agents:
-            raise ValueError(f"Agent {agent.agent_id} already registered")
-        self.agents[agent.agent_id] = agent
-        agent.sim = self
+        if entity.entity_id in self.entities:
+            raise ValueError(f"Entity {entity.entity_id} already registered")
+        self.entities[entity.entity_id] = entity
+        entity.sim = self
 
-    def get_agent(self, agent_id: str) -> Optional["Agent"]:
+    def get_entity(self, entity_id: str) -> Optional["Entity"]:
         """
-        Retrieve an agent by ID.
+        Retrieve an entity by ID.
 
         Args:
-            agent_id: Agent ID of the agent to be retrieved
+            entity_id: The entity ID of the entity to be retrieved
 
         Returns:
-            The retrieved agent object
+            The retrieved entity object
         """
-        return self.agents.get(agent_id)
+        return self.entities.get(entity_id)
 
     def set_network(self, network: "Network"):
         """Set the road network for the simulation"""
@@ -79,7 +80,7 @@ class Kernel:
         Schedule an event to occur at a specific absolute time.
 
         Args:
-            time: Absolute simulation time for the event
+            time: Absolute core time for the event
             action: Function to call when event fires
             data: Optional dictionary of parameters to pass to action
 
@@ -107,15 +108,15 @@ class Kernel:
         Args:
             sender_id: ID of sending agent
             receiver_id: ID of receiving agent
-            msg_type: Type of message (e.g., 'offer', 'accept', 'reject')
-            content: Message payload
+            msg_type: Type of message (e.g., 'DELIVERY_REQUEST', 'BID_REQUEST')
+            content: Message payload (dictionary with variable names as keys)
             delay: Delivery delay (default 0 for instant)
         """
-        sender = self.get_agent(sender_id)
+        sender = self.get_entity(sender_id)
         if sender is None:
             raise ValueError(f"Agent {sender_id} not found")
 
-        receiver = self.get_agent(receiver_id)
+        receiver = self.get_entity(receiver_id)
         if receiver is None:
             raise ValueError(f"Agent {receiver_id} not found")
 
@@ -128,7 +129,8 @@ class Kernel:
         )
 
         # Schedule message delivery
-        self.schedule(delay, receiver.receive_message, {"message": message})
+        if isinstance(receiver, Agent):
+            self.schedule(delay, receiver.receive_message, {"message": message})
 
     def run(self, until: Optional[float] = None):
         """
@@ -171,4 +173,4 @@ class Kernel:
         self.event_queue = []
         self.event_counter = 0
         self.running = False
-        self.agents = {}
+        self.entities = {}

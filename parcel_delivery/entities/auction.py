@@ -1,10 +1,10 @@
 from typing import List, TYPE_CHECKING
 
-from parcel_delivery.simulation.message import Message
-from parcel_delivery.agents.agent import Agent
+from parcel_delivery.core.message import Message
+from parcel_delivery.core.agent import Agent
 
 if TYPE_CHECKING:
-    from parcel_delivery.agents.courier import Courier
+    from parcel_delivery.entities.courier import Courier
     from parcel_delivery.models.bid import Bid
     from parcel_delivery.models.parcel import Parcel
 
@@ -15,8 +15,8 @@ class Auction(Agent):
     It is created when a Customer requests the delivery of a Parcel.
     """
 
-    def __init__(self, agent_id: str, auctioned_parcel: "Parcel"):
-        super().__init__(agent_id)
+    def __init__(self, entity_id: str, auctioned_parcel: "Parcel"):
+        super().__init__(entity_id)
         self.auctioned_parcel: "Parcel" = auctioned_parcel
         self.starting_price: float = auctioned_parcel.fare
         self.duration: float = 20
@@ -24,7 +24,7 @@ class Auction(Agent):
 
     def start_bidding(self):
         """Begins bidding for the auctioned parcel."""
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Bidding for {self.auctioned_parcel.contents} has started. Starting price: {self.starting_price}. Duration: {self.duration}")
+        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Bidding for {self.auctioned_parcel.contents} has started. Starting price: {self.starting_price}. Duration: {self.duration}")
         self.schedule_action(self.duration, self.end_bidding)
 
     def receive_message(self, message: "Message"):
@@ -46,14 +46,14 @@ class Auction(Agent):
         """
         bid = message.content["bid"]
         if bid.value <= self.starting_price:
-            print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Bid by {bid.courier.agent_id} for value {bid.value} submitted.")
+            print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Bid by {bid.courier.entity_id} for value {bid.value} submitted.")
             self.bids.append(bid)
         else:
-            print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Bid by {bid.courier.agent_id} for value {bid.value} too high, not accepted.")
+            print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Bid by {bid.courier.entity_id} for value {bid.value} too high, not accepted.")
 
     def end_bidding(self):
         """Ends bidding for the auctioned parcel."""
-        print(f"[t={self.sim.current_time:.1f}] {self.agent_id}: Bidding has ended.")
+        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Bidding has ended.")
         winner = self.determine_winner()
         for bid in self.bids:
             courier = bid.courier
@@ -77,7 +77,7 @@ class Auction(Agent):
         Args:
             courier: The courier that has won the auction
         """
-        self.send_message(receiver_id=courier.agent_id,
+        self.send_message(receiver_id=courier.entity_id,
                           msg_type="WINNER_NOTIFICATION",
                           content={"parcel": self.auctioned_parcel},
                           delay=0.0)
@@ -89,7 +89,7 @@ class Auction(Agent):
         Args:
             courier: A courier that has lost the auction
         """
-        self.send_message(receiver_id=courier.agent_id,
+        self.send_message(receiver_id=courier.entity_id,
                           msg_type="LOSER_NOTIFICATION",
                           content=None,
                           delay=0.0)
