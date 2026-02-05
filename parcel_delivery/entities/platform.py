@@ -54,7 +54,7 @@ class Platform(Agent):
         self.sim.register_entity(new_auction)
 
         # Start the new auction
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: A new auction for {parcel.contents} has started")
+        self.print_log_message(f"A new auction for {parcel.contents} has started")
         self.schedule_action(delay=0.0, action=new_auction.start_bidding)
         self.schedule_action(delay=0.0, action=self.send_auction_notification, data={"auction": new_auction})
 
@@ -75,7 +75,7 @@ class Platform(Agent):
             auction: The auction to be notified of
         """
 
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Sent AUCTION_NOTIFICATION for {auction.auctioned_parcel.contents} to all subscribed couriers")
+        self.print_log_message(f"Sent AUCTION_NOTIFICATION for {auction.auctioned_parcel.contents} to all subscribed couriers")
         for courier in self.subscribed_couriers:
             self.send_message(receiver_id=courier.entity_id,
                               msg_type="AUCTION_NOTIFICATION",

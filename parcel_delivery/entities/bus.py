@@ -18,7 +18,7 @@ class Bus(Entity):
         Starts the journey of the bus through the nodes in its route.
         """
         if not self.remaining_nodes:
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Journey of bus has ended!")
+            self.print_log_message(f"Journey of bus has ended!")
 
         else:
             # Next node is just first in the remaining_nodes
@@ -29,7 +29,7 @@ class Bus(Entity):
             travel_time = edge.get_travel_time()
 
             # Starts traveling
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
+            self.print_log_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
             self.schedule_action(travel_time, self.arrive_at_node, {"next_node": next_node})
 
     def arrive_at_node(self, next_node: int):
@@ -37,7 +37,7 @@ class Bus(Entity):
         Bus arrives at a node.
         """
         # Update the bus's position
-        print(f"[t={self.sim.current_time}] {self.entity_id}: Arrived at {next_node}")
+        self.print_log_message(f"Arrived at {next_node}")
         self.current_node = next_node
 
         # Remove from remaining nodes to visit

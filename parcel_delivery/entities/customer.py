@@ -35,7 +35,7 @@ class Customer(Agent):
         if parcel.destination_node_id not in self.sim.network.nodes:
             raise ValueError("Parcel's destination node not in network, parcel cannot be delivered")
 
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Sent DELIVERY_REQUEST for {parcel.contents} to {platform.entity_id}")
+        self.print_log_message(f"Sent DELIVERY_REQUEST for {parcel.contents} to {platform.entity_id}")
         self.send_message(receiver_id=platform.entity_id,
                           msg_type="DELIVERY_REQUEST",
                           content={"parcel": parcel},

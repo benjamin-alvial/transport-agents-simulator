@@ -13,7 +13,7 @@ class Courier(Agent):
     Agent that delivers Parcels.
     """
 
-    def __init__(self, entity_id: str, start_node: int, capacity: int, speed: float):
+    def __init__(self, entity_id: str, start_node: int, capacity: int):
         super().__init__(entity_id)
         self.current_node: Optional[int] = start_node # Last node that was visited
         self.next_node: Optional[int] = None # Next node to visit
@@ -21,7 +21,6 @@ class Courier(Agent):
         self.next_stop: Optional[Stop] = None # Next stop to visit
 
         self.capacity: int = capacity
-        self.speed: float = speed
 
         self.itinerary: List[Stop] = []
         self.current_load: float = 0
@@ -48,7 +47,7 @@ class Courier(Agent):
         """"
         Receives a notification that a new auction for a parcel has started.
         """
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Received auction notification.")
+        self.print_log_message(f"Received auction notification.")
         auction = message.content["auction"]
         parcel = auction.auctioned_parcel
 
@@ -57,12 +56,12 @@ class Courier(Agent):
             BID_VALUE = random.randint(1, 10)
             bid = Bid(self, auction, BID_VALUE)
 
-            print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
-            self.schedule_action(delay=5.0, action=self.send_bid_request, data={"bid": bid, "auction": auction})
+            self.print_log_message(f"Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
+            self.schedule_action(delay=300.0, action=self.send_bid_request, data={"bid": bid, "auction": auction})
 
     def handle_winner_notification(self, message: "Message"):
         """ Prints happy message and adds parcel to itinerary and vehicle."""
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Won the auction.")
+        self.print_log_message(f"Won the auction.")
         parcel = message.content["parcel"]
         self.itinerary.append(Stop(parcel.origin_node_id, "PICKUP", parcel))
         self.carried_parcels.append(parcel)
@@ -70,7 +69,7 @@ class Courier(Agent):
 
     def handle_loser_notification(self):
         """ Prints sad message."""
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Lost the auction.")
+        self.print_log_message(f"Lost the auction.")
 
     def send_bid_request(self, bid: "Bid", auction: "Auction"):
         """
@@ -80,7 +79,7 @@ class Courier(Agent):
             bid: The bid to send
             auction: The auction to be bid on
         """
-        print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Sent BID_REQUEST for {auction.auctioned_parcel.contents} for value {bid.value}")
+        self.print_log_message(f"Sent BID_REQUEST for {auction.auctioned_parcel.contents} for value {bid.value}")
         self.send_message(receiver_id=auction.entity_id,
                           msg_type="BID_REQUEST",
                           content={"bid": bid},
@@ -96,7 +95,7 @@ class Courier(Agent):
 
         # No stops left
         if not self.itinerary:
-            print(f"[t={self.sim.current_time}] {self.entity_id}: All deliveries complete!")
+            self.print_log_message(f"All deliveries complete!")
             return
 
         # Next stop is just first in itinerary
@@ -114,12 +113,12 @@ class Courier(Agent):
 
         # If already at stop node
         if not self.remaining_nodes:
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Already at stop {self.current_node}")
+            self.print_log_message(f"Already at stop {self.current_node}")
             self.handle_stop()
             return
 
         # Start movement
-        print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling from {self.current_node} to {self.next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges}")
+        self.print_log_message(f"Traveling from {self.current_node} to {self.next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges}")
         self.start_travel_to_next_node()
 
     def start_travel_to_next_node(self):
@@ -141,7 +140,7 @@ class Courier(Agent):
         travel_time = edge.get_travel_time()
 
         # Starts traveling
-        print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
+        self.print_log_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
         self.schedule_action(travel_time, self.arrive_at_node)
 
     def arrive_at_node(self):
@@ -149,7 +148,7 @@ class Courier(Agent):
         Courier arrives at a node.
         """
         # Update the courier's position
-        print(f"[t={self.sim.current_time}] {self.entity_id}: Arrived at {self.next_node}")
+        self.print_log_message(f"Arrived at {self.next_node}")
         self.current_node = self.next_node
         self.next_node = None
 
@@ -167,18 +166,18 @@ class Courier(Agent):
         Handle pickup or drop-off at a stop.
         """
         stop = self.next_stop
-        print(f"[t={self.sim.current_time}] {self.entity_id}: Handling stop at node {self.current_node}")
+        self.print_log_message(f"Handling stop at node {self.current_node}")
 
         # Deliver or pickup
         if stop.stop_type == "PICKUP":
             parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Picked up parcel at {self.current_node}")
+            self.print_log_message(f"Picked up parcel at {self.current_node}")
             self.carried_parcels.append(parcel)
             parcel.state = "BEING_DELIVERED"
             self.itinerary.append(Stop(parcel.destination_node_id, "DROP_OFF", parcel))
         elif stop.stop_type == "DROP_OFF":
             parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Delivered parcel at {self.current_node}")
+            self.print_log_message(f"Delivered parcel at {self.current_node}")
             self.carried_parcels.remove(parcel)
             parcel.state = "DELIVERED"
 

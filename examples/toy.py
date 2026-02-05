@@ -11,8 +11,9 @@ if __name__ == "__main__":
     #      | /
     #      5
 
+    # All distances in meters
     positions = [
-        (0.0, 0.1), (0.1, 0.1), (0.2, 0.1), (0.3, 0.1), (0.4, 0.1), (0.1, 0.0)
+        (0, 100), (100, 100), (200, 100), (300, 100), (400, 100), (100, 0)
     ]
 
     for i, (x, y) in enumerate(positions):
@@ -24,11 +25,11 @@ if __name__ == "__main__":
     network.add_edge(2, 3)
     network.add_edge(3, 4)
     network.add_edge(5, 1)
-    network.add_edge(5, 2, 0.35)
+    network.add_edge(5, 2, 500)
 
     print(f"Network: {network}")
     path_nodes, path_edges, dist = network.shortest_path(5, 4)
-    print(f"Shortest path 5->4: {path_nodes} through {path_edges} (distance: {dist:.2f})")
+    print(f"Shortest path 5->4: {path_nodes} through {path_edges} (distance: {dist:.2f}m)")
 
     # Visualize
     print("\nGenerating visualization...")
@@ -41,9 +42,9 @@ if __name__ == "__main__":
     bus_01234 = Bus("bus_01234", [0,1,2,3,4])
     network.add_flows(bus_01234.route, 1) ### CHANGE THIS
 
-    for u, neighbors in network.edges.items():
-        for v, edge in neighbors.items():
-            print(f"{edge}: flow considering bus = {edge.flow}")
+    # for u, neighbors in network.edges.items():
+    #     for v, edge in neighbors.items():
+    #         print(f"{edge}: flow considering bus = {edge.flow}")
 
     # # ================= DELIVERY =================
     sim = Kernel()
@@ -52,8 +53,8 @@ if __name__ == "__main__":
     # Create entities
     platform = Platform("platform")
     customer_sending = Customer("customer_sending", 1)
-    courier1 = Courier("courier1", 5, 20, 30)
-    courier2 = Courier("courier2", 5, 20, 30)
+    courier1 = Courier("courier1", 5, 20)
+    courier2 = Courier("courier2", 5, 20)
 
     # Register entities to simulation kernel
     sim.register_entity(platform)
@@ -68,23 +69,23 @@ if __name__ == "__main__":
 
     # Schedule a delivery request
     parcel = Parcel("laptop", customer_sending.location_node_id, 4, 5, 10)
-    sim.schedule(delay=5.0,
+    sim.schedule(delay=0.0,
                  action=customer_sending.send_delivery_request,
                  data={"parcel": parcel,
                        "platform": platform})
 
     # Schedule a bus departure
-    sim.schedule(delay=5.0,
+    sim.schedule(delay=1800.0,
                  action=bus_01234.start_journey)
 
-    # Run simulation
+    # Run simulation for the 24 hours of the day
     print("Starting simulation...\n")
-    sim.run(until=100.0)
+    sim.run(until=86400)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
 
-    for u, neighbors in sim.network.edges.items():
-        for v, edge in neighbors.items():
-            print(f"{edge}: flow with buses and couriers = {edge.flow}")
+    # for u, neighbors in sim.network.edges.items():
+    #     for v, edge in neighbors.items():
+    #         print(f"{edge}: flow with buses and couriers = {edge.flow}")
 
     network.visualize(show_congestion=True)
     network.calculate_delay(bus_01234.route)

@@ -14,7 +14,7 @@ class Kernel:
     """
 
     def __init__(self):
-        self.current_time: float = 0.0
+        self.current_time: float = 6*60*60 # Begin at 6:00 in the morning
         self.event_queue: List["Event"] = []
         self.event_counter: int = 0
         self.running: bool = False

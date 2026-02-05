@@ -10,12 +10,12 @@ class Edge:
     capacity: float = 10.0
     flow: float = 7.0
 
-    def get_travel_time(self, base_speed: float = 50.0) -> float:
+    def get_travel_time(self, base_speed: float = 14.0) -> float:
         """
         Calculate travel time considering congestion using BPR function.
 
         Args:
-            base_speed: Free-flow speed in km/h
+            base_speed: Free-flow speed in m/s
 
         Returns:
             Travel time in hours
