@@ -15,10 +15,14 @@ class Courier(Agent):
 
     def __init__(self, entity_id: str, start_node: int, capacity: int, speed: float):
         super().__init__(entity_id)
-        self.current_node: Optional[int] = start_node
-        self.target_node: Optional[int] = None
+        self.current_node: Optional[int] = start_node # Last node that was visited
+        self.next_node: Optional[int] = None # Next node to visit
+        self.remaining_nodes: List[int] = [] # List of nodes to visit for a specific delivery
+        self.next_stop: Optional[Stop] = None # Next stop to visit
+
         self.capacity: int = capacity
         self.speed: float = speed
+
         self.itinerary: List[Stop] = []
         self.current_load: float = 0
         self.carried_parcels: List[Parcel] = []
@@ -60,8 +64,9 @@ class Courier(Agent):
         """ Prints happy message and adds parcel to itinerary and vehicle."""
         print(f"[t={self.sim.current_time:.1f}] {self.entity_id}: Won the auction.")
         parcel = message.content["parcel"]
-        self.itinerary.append(Stop(parcel.origin_node_id, parcel.state, parcel))
-        self.schedule_action(delay=0.0, action=self.start_delivery)
+        self.itinerary.append(Stop(parcel.origin_node_id, "PICKUP", parcel))
+        self.carried_parcels.append(parcel)
+        self.schedule_action(delay=0.0, action=self.start_journey)
 
     def handle_loser_notification(self):
         """ Prints sad message."""
@@ -81,61 +86,106 @@ class Courier(Agent):
                           content={"bid": bid},
                           delay=0.0)
 
-    def start_delivery(self):
+    def start_journey(self):
         """"
-        Starts the delivery of the scheduled parcel pick-ups and deliveries.
+        Starts the journey of the courier to complete a pickup or drop-off in its itinerary.
         """
+        # Already traveling
+        if self.remaining_nodes:
+            return
+
+        # No stops left
         if not self.itinerary:
             print(f"[t={self.sim.current_time}] {self.entity_id}: All deliveries complete!")
+            return
 
-        else:
-            # Next stop is just first in itinerary
-            next_stop = self.itinerary[0]
+        # Next stop is just first in itinerary
+        self.next_stop = self.itinerary[0]
 
-            # Calculate the path of nodes that must be traveled to reach the destination stop.
-            path = self.sim.network.shortest_path(self.current_node, next_stop.location_node_id)
-            path_nodes = path[0]
-            path_edges = path[1]
-            distance = path[2]
+        # Calculate the shortest path of nodes to travel to the next stop
+        path_nodes, path_edges, distance = self.sim.network.shortest_path(
+            self.current_node,
+            self.next_stop.location_node_id)
 
-            # Calculate travel time between current position and next stop location
-            travel_time = distance / self.speed
+        # Normalize path: remove current node if present
+        if path_nodes and path_nodes[0] == self.current_node:
+            path_nodes = path_nodes[1:]
+        self.remaining_nodes = path_nodes
 
-            # Assign flows
-            self.sim.network.add_flows(path_nodes, 1)
+        # If already at stop node
+        if not self.remaining_nodes:
+            print(f"[t={self.sim.current_time}] {self.entity_id}: Already at stop {self.current_node}")
+            self.handle_stop()
+            return
 
-            # Starts traveling
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling {self.current_node}->{next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges} (will take {travel_time:.1f}s)")
-            self.current_node = None
-            self.target_node = next_stop.location_node_id
-            self.schedule_action(travel_time, self.arrive_at_stop, {"stop": next_stop})
+        # Start movement
+        print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling from {self.current_node} to {self.next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges}")
+        self.start_travel_to_next_node()
 
-    def arrive_at_stop(self, stop: "Stop"):
+    def start_travel_to_next_node(self):
         """"
-        Courier arrives at a Stop and parcel is picked up or delivered.
+        Start traveling to the next node in remaining_nodes.
+        """
+        if not self.remaining_nodes:
+            return
+
+        # Next node is just first in the remaining_nodes
+        self.next_node = self.remaining_nodes[0]
+
+        # Calculate travel time between current position and next node
+        edge = self.sim.network.get_edge(self.current_node, self.next_node)
+        if edge is None:
+            raise RuntimeError(
+                f"No edge between {self.current_node} and {self.next_node}"
+            )
+        travel_time = edge.get_travel_time()
+
+        # Starts traveling
+        print(f"[t={self.sim.current_time}] {self.entity_id}: Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
+        self.schedule_action(travel_time, self.arrive_at_node)
+
+    def arrive_at_node(self):
+        """"
+        Courier arrives at a node.
         """
         # Update the courier's position
-        self.current_node = stop.location_node_id
-        print(f"[t={self.sim.current_time}] {self.entity_id}: Arrived at {self.target_node}")
-        self.target_node = None
+        print(f"[t={self.sim.current_time}] {self.entity_id}: Arrived at {self.next_node}")
+        self.current_node = self.next_node
+        self.next_node = None
 
+        # Remove from remaining nodes to visit
+        self.remaining_nodes.pop(0)
 
-        # Remove from itinerary
-        self.itinerary.pop(0)
+        # Check if this node is a stop
+        if self.next_stop and self.current_node == self.next_stop.location_node_id:
+            self.handle_stop()
+        else:
+            self.start_travel_to_next_node()
+
+    def handle_stop(self):
+        """"
+        Handle pickup or drop-off at a stop.
+        """
+        stop = self.next_stop
+        print(f"[t={self.sim.current_time}] {self.entity_id}: Handling stop at node {self.current_node}")
 
         # Deliver or pickup
-        stop_type = stop.stop_type
-        if stop_type == "WAITING_PICK_UP":
-            pick_up_parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Picked up parcel at {stop.location_node_id}")
-            self.carried_parcels.append(pick_up_parcel)
-            pick_up_parcel.state = "BEING_DELIVERED"
-            self.itinerary.append(Stop(pick_up_parcel.destination_node_id, pick_up_parcel.state, pick_up_parcel))
-        elif stop_type == "BEING_DELIVERED":
-            drop_off_parcel = stop.parcel
-            print(f"[t={self.sim.current_time}] {self.entity_id}: Delivered parcel at {stop.location_node_id}")
-            self.carried_parcels.remove(drop_off_parcel)
-            drop_off_parcel.state = "DELIVERED"
+        if stop.stop_type == "PICKUP":
+            parcel = stop.parcel
+            print(f"[t={self.sim.current_time}] {self.entity_id}: Picked up parcel at {self.current_node}")
+            self.carried_parcels.append(parcel)
+            parcel.state = "BEING_DELIVERED"
+            self.itinerary.append(Stop(parcel.destination_node_id, "DROP_OFF", parcel))
+        elif stop.stop_type == "DROP_OFF":
+            parcel = stop.parcel
+            print(f"[t={self.sim.current_time}] {self.entity_id}: Delivered parcel at {self.current_node}")
+            self.carried_parcels.remove(parcel)
+            parcel.state = "DELIVERED"
 
-        # Continue to next destination
-        self.start_delivery()
+        # Remove completed stop
+        self.itinerary.pop(0)
+        self.next_stop = None
+        self.remaining_nodes = []
+
+        # Continue with next stop
+        self.start_journey()

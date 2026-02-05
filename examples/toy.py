@@ -7,12 +7,12 @@ if __name__ == "__main__":
     network = Network()
 
     # Create a toy network
-    #  0---1---2---3
+    #  0---1---2---3---4
     #      | /
-    #      4
+    #      5
 
     positions = [
-        (0.0, 0.1), (0.1, 0.1), (0.2, 0.1), (0.3, 0.1), (0.1, 0.0)
+        (0.0, 0.1), (0.1, 0.1), (0.2, 0.1), (0.3, 0.1), (0.4, 0.1), (0.1, 0.0)
     ]
 
     for i, (x, y) in enumerate(positions):
@@ -22,28 +22,28 @@ if __name__ == "__main__":
     network.add_edge(0, 1)
     network.add_edge(1, 2)
     network.add_edge(2, 3)
-    # network.add_edge(4, 1)
-    network.add_edge(4, 2, 0.35)
+    network.add_edge(3, 4)
+    network.add_edge(5, 1)
+    network.add_edge(5, 2, 0.35)
 
     print(f"Network: {network}")
-    path_nodes, path_edges, dist = network.shortest_path(4, 2)
-    print(f"Shortest path 0->8: {path_nodes} through {path_edges} (distance: {dist:.2f})")
+    path_nodes, path_edges, dist = network.shortest_path(5, 4)
+    print(f"Shortest path 5->4: {path_nodes} through {path_edges} (distance: {dist:.2f})")
 
     # Visualize
     print("\nGenerating visualization...")
     network.visualize(
-        highlight_nodes=[4, 2],
+        highlight_nodes=[5, 4],
         highlight_edges=[(path_nodes[i], path_nodes[i + 1]) for i in range(len(path_nodes) - 1)],
     )
-    network.visualize()
 
     # ================= BASE BUS FLOW =================
-    bus_123 = Bus("bus_123", [0,1,2,3])
-    network.add_flows(bus_123.route, 1)
+    bus_01234 = Bus("bus_01234", [0,1,2,3,4])
+    network.add_flows(bus_01234.route, 1) ### CHANGE THIS
 
     for u, neighbors in network.edges.items():
         for v, edge in neighbors.items():
-            print(f"{edge}: flow = {edge.flow}")
+            print(f"{edge}: flow considering bus = {edge.flow}")
 
     # # ================= DELIVERY =================
     sim = Kernel()
@@ -51,40 +51,40 @@ if __name__ == "__main__":
 
     # Create entities
     platform = Platform("platform")
-    customer_sending = Customer("customer_sending", 4)
-    courier1 = Courier("courier1", 4, 20, 30)
-    courier2 = Courier("courier2", 4, 20, 30)
+    customer_sending = Customer("customer_sending", 1)
+    courier1 = Courier("courier1", 5, 20, 30)
+    courier2 = Courier("courier2", 5, 20, 30)
 
+    # Register entities to simulation kernel
     sim.register_entity(platform)
     sim.register_entity(customer_sending)
     sim.register_entity(courier1)
     sim.register_entity(courier2)
-    sim.register_entity(bus_123)
+    sim.register_entity(bus_01234)
 
+    # Register couriers to platform
+    platform.register_courier(courier1)
+    platform.register_courier(courier2)
+
+    # Schedule a delivery request
+    parcel = Parcel("laptop", customer_sending.location_node_id, 4, 5, 10)
     sim.schedule(delay=5.0,
                  action=customer_sending.send_delivery_request,
-                 data={"parcel": Parcel("laptop", customer_sending.location_node_id, 2, 5, 10),
+                 data={"parcel": parcel,
                        "platform": platform})
 
+    # Schedule a bus departure
     sim.schedule(delay=5.0,
-                 action=platform.register_courier,
-                 data={"courier": courier1})
+                 action=bus_01234.start_journey)
 
-    sim.schedule(delay=5.0,
-                 action=platform.register_courier,
-                 data={"courier": courier2})
-
-    sim.schedule(delay=5.0,
-                 action=bus_123.start_journey)
-
+    # Run simulation
     print("Starting simulation...\n")
     sim.run(until=100.0)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
 
     for u, neighbors in sim.network.edges.items():
         for v, edge in neighbors.items():
-            print(f"{edge}: flow = {edge.flow}")
+            print(f"{edge}: flow with buses and couriers = {edge.flow}")
 
     network.visualize(show_congestion=True)
-
-    network.calculate_delay(bus_123.route)
+    network.calculate_delay(bus_01234.route)

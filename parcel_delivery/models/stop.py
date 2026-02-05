@@ -4,9 +4,9 @@ if TYPE_CHECKING:
     from parcel_delivery.models.parcel import Parcel
 
 class Stop:
-    """Represents a stop on the courier's route"""
+    """Represents a stop on the courier's route to pick up or drop off a parcel"""
 
     def __init__(self, location_node_id: int, stop_type: str, parcel: "Parcel"):
         self.location_node_id: int = location_node_id
-        self.stop_type: str = stop_type
+        self.stop_type: str = stop_type # PICKUP or DROP_OFF
         self.parcel: "Parcel" = parcel

@@ -328,7 +328,7 @@ class Network:
                        edgecolors="black", linewidth=1.5)
 
             label = node.label if node.label else str(node_id)
-            ax.text(node.x, node.y + 0.5, label,
+            ax.text(node.x, node.y, label,
                     ha="center", fontsize=9,
                     weight="bold" if highlighted else "normal")
 
