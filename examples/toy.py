@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # ================= BASE BUS FLOW =================
     bus_123 = Bus("bus_123", [0,1,2,3])
-    network.add_flows(bus_123.nodes_sequence, 1)
+    network.add_flows(bus_123.route, 1)
 
     for u, neighbors in network.edges.items():
         for v, edge in neighbors.items():
@@ -59,6 +59,7 @@ if __name__ == "__main__":
     sim.register_entity(customer_sending)
     sim.register_entity(courier1)
     sim.register_entity(courier2)
+    sim.register_entity(bus_123)
 
     sim.schedule(delay=5.0,
                  action=customer_sending.send_delivery_request,
@@ -73,7 +74,10 @@ if __name__ == "__main__":
                  action=platform.register_courier,
                  data={"courier": courier2})
 
-    print("Starting core...\n")
+    sim.schedule(delay=5.0,
+                 action=bus_123.start_journey)
+
+    print("Starting simulation...\n")
     sim.run(until=100.0)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
 
@@ -83,4 +87,4 @@ if __name__ == "__main__":
 
     network.visualize(show_congestion=True)
 
-    network.calculate_delay(bus_123.nodes_sequence)
+    network.calculate_delay(bus_123.route)
