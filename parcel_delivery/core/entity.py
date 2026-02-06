@@ -1,6 +1,8 @@
 from abc import ABC
 from typing import Optional, Callable, Any, TYPE_CHECKING
 
+from parcel_delivery.utils.time_utils import format_time
+
 if TYPE_CHECKING:
     from parcel_delivery.core.kernel import Kernel
 
@@ -37,17 +39,6 @@ class Entity(ABC):
         Prints the given message preceded by the simulation time at which the event occurs
         """
         t_s = self.sim.current_time
-        if t_s < 60:
-            formatted_time = f"{t_s:.1f}s"
-        elif t_s < 3600:
-            m = int(t_s // 60)
-            s = t_s % 60
-            formatted_time = f"{m}m{s:04.1f}s"
-        else:
-            h = int(t_s // 3600)
-            m = int((t_s % 3600) // 60)
-            s = t_s % 60
-            formatted_time = f"{h}h{m:02d}m{s:04.1f}s"
-
+        formatted_time = format_time(t_s)
         sim_time_string = f"[t={formatted_time}] {self.entity_id}: "
         print(sim_time_string + msg)
