@@ -6,6 +6,7 @@ from parcel_delivery.core.entity import Entity
 from parcel_delivery.core.event import Event
 from parcel_delivery.core.message import Message
 from parcel_delivery.environment.network import Network
+from parcel_delivery.loggers.base_logger import BaseLogger
 
 
 class Kernel:
@@ -20,6 +21,7 @@ class Kernel:
         self.running: bool = False
         self.entities: Dict[str, "Entity"] = {}
         self.network: Optional["Network"] = None
+        self.loggers: List["BaseLogger"] = []
 
     def register_entity(self, entity: "Entity"):
         """
@@ -48,6 +50,9 @@ class Kernel:
     def set_network(self, network: "Network"):
         """Set the road network for the simulation"""
         self.network = network
+
+    def add_logger(self, logger: "BaseLogger"):
+        self.loggers.append(logger)
 
     def schedule(self, delay: float, action: Callable, data: dict[str, Any] | None = None) -> "Event":
         """
@@ -159,8 +164,12 @@ class Kernel:
         if until is not None and self.current_time < until:
             self.current_time = until
 
+        self.stop()
+
     def stop(self):
         """Stop the simulation (can be called from within an event)"""
+        for log in self.loggers:
+            log.dump_to_csv()
         self.running = False
 
     def peek_next_event_time(self) -> Optional[float]:
