@@ -1,6 +1,7 @@
 import random
 from typing import List, Optional
 
+from parcel_delivery.environment.edge import Edge
 from parcel_delivery.entities.auction import Auction
 from parcel_delivery.core.message import Message
 from parcel_delivery.core.agent import Agent
@@ -19,6 +20,7 @@ class Courier(Agent):
         self.next_node: Optional[int] = None # Next node to visit
         self.remaining_nodes: List[int] = [] # List of nodes to visit for a specific delivery
         self.next_stop: Optional[Stop] = None # Next stop to visit
+        self.current_edge: Optional[Edge] = None
 
         self.capacity: int = capacity
 
@@ -141,12 +143,18 @@ class Courier(Agent):
 
         # Starts traveling
         self.print_log_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
+        self.current_edge = edge
+        self.current_edge.vehicle_enters(self, self.sim.current_time)
         self.schedule_action(travel_time, self.arrive_at_node)
 
     def arrive_at_node(self):
         """"
         Courier arrives at a node.
         """
+        # Exits edge
+        self.current_edge.vehicle_exits(self, self.sim.current_time)
+        self.current_edge = None
+
         # Update the courier's position
         self.print_log_message(f"Arrived at {self.next_node}")
         self.current_node = self.next_node

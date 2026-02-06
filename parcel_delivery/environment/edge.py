@@ -1,4 +1,10 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from parcel_delivery.loggers import EdgeLogger
+
+if TYPE_CHECKING:
+    from parcel_delivery import Entity
 
 
 @dataclass
@@ -26,6 +32,14 @@ class Edge:
         beta = 4
         delay = free_flow_time * (1 + alpha * (self.flow / self.capacity) ** beta)
         return delay
+
+    def vehicle_enters(self, vehicle: "Entity", time: float):
+        self.flow += 1
+        EdgeLogger().log_entry(time, vehicle.entity_id, "entry", self.from_node, self.to_node, self.flow)
+
+    def vehicle_exits(self, vehicle: "Entity", time: float):
+        self.flow -= 1
+        EdgeLogger().log_entry(time, vehicle.entity_id, "exit", self.from_node, self.to_node, self.flow)
 
     def congestion_ratio(self) -> float:
         """Returns flow/capacity ratio (0 to 1+)"""

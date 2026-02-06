@@ -1,6 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
-from parcel_delivery import Entity
+from parcel_delivery.core.entity import Entity
+
+if TYPE_CHECKING:
+    from parcel_delivery.environment.edge import Edge
 
 
 class Bus(Entity):
@@ -13,8 +16,13 @@ class Bus(Entity):
             raise ValueError("Bus route must contain at least two nodes")
         self.route: List[int] = route # List of node indices
         self.current_node: int = route[0] # Last node that was visited
+        self.current_edge: Optional["Edge"] = None
         self.remaining_nodes: List[int] = self.route[1:] # Nodes left in the route to visit
         self.next_node: Optional[int] = None
+        self.delay: float = 0.0
+
+    def get_delay(self) -> float:
+        return self.delay
 
     def start_journey(self):
         """"
@@ -47,16 +55,23 @@ class Bus(Entity):
 
         # Starts traveling
         self.print_log_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
-        self.schedule_action(travel_time, self.arrive_at_node)
+        self.current_edge = edge
+        self.current_edge.vehicle_enters(self, self.sim.current_time)
+        self.schedule_action(travel_time, self.arrive_at_node, {"travel_time": travel_time})
 
-    def arrive_at_node(self):
+    def arrive_at_node(self, travel_time: float):
         """"
         Bus arrives at a node.
         """
-        # Update the bus's position
+        # Exits edge
+        self.current_edge.vehicle_exits(self, self.sim.current_time)
+        self.current_edge = None
+
+        # Update the bus's position and delay
         self.print_log_message(f"Arrived at {self.next_node}")
         self.current_node = self.next_node
         self.next_node = None
+        self.delay += travel_time
 
         # Remove from remaining nodes to visit
         self.remaining_nodes.pop(0)

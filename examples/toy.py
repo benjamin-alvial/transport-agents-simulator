@@ -1,7 +1,10 @@
 # Example usage and testing
 from parcel_delivery import Platform, Customer, Courier, Parcel, Kernel, Bus, Network
+from parcel_delivery.loggers import EdgeLogger
 
 if __name__ == "__main__":
+
+    # ================= NETWORK =================
     # Example: Toy network
     print("\n=== Example: Toy Network ===")
     network = Network()
@@ -38,23 +41,18 @@ if __name__ == "__main__":
         highlight_edges=[(path_nodes[i], path_nodes[i + 1]) for i in range(len(path_nodes) - 1)],
     )
 
-    # ================= BASE BUS FLOW =================
-    bus_01234 = Bus("bus_01234", [0,1,2,3,4])
-    network.add_flows(bus_01234.route, 1) ### CHANGE THIS
-
-    # for u, neighbors in network.edges.items():
-    #     for v, edge in neighbors.items():
-    #         print(f"{edge}: flow considering bus = {edge.flow}")
-
-    # # ================= DELIVERY =================
+    # ================= DELIVERY =================
     sim = Kernel()
     sim.set_network(network)
+    edge_logger = EdgeLogger()
+    sim.add_logger(edge_logger)
 
     # Create entities
     platform = Platform("platform")
     customer_sending = Customer("customer_sending", 1)
     courier1 = Courier("courier1", 5, 20)
     courier2 = Courier("courier2", 5, 20)
+    bus_01234 = Bus("bus_01234", [0, 1, 2, 3, 4])
 
     # Register entities to simulation kernel
     sim.register_entity(platform)
@@ -75,7 +73,7 @@ if __name__ == "__main__":
                        "platform": platform})
 
     # Schedule a bus departure
-    sim.schedule(delay=1800.0,
+    sim.schedule(delay=1800.0+0.1,
                  action=bus_01234.start_journey)
 
     # Run simulation for the 24 hours of the day
@@ -83,9 +81,5 @@ if __name__ == "__main__":
     sim.run(until=86400)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
 
-    # for u, neighbors in sim.network.edges.items():
-    #     for v, edge in neighbors.items():
-    #         print(f"{edge}: flow with buses and couriers = {edge.flow}")
-
     network.visualize(show_congestion=True)
-    network.calculate_delay(bus_01234.route)
+    print("Bus delay: ", bus_01234.get_delay())
