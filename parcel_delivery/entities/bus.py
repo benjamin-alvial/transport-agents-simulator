@@ -33,7 +33,7 @@ class Bus(Entity):
             return
 
         if not self.remaining_nodes:
-            self.print_log_message(f"Journey of bus has ended!")
+            self.log_event_message(f"Journey of bus has ended!")
             return
 
         self.start_travel_to_next_node()
@@ -54,7 +54,7 @@ class Bus(Entity):
         travel_time = edge.get_travel_time()
 
         # Starts traveling
-        self.print_log_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
+        self.log_event_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
         self.current_edge = edge
         self.current_edge.vehicle_enters(self, self.sim.current_time)
         self.schedule_action(travel_time, self.arrive_at_node, {"travel_time": travel_time})
@@ -68,7 +68,7 @@ class Bus(Entity):
         self.current_edge = None
 
         # Update the bus's position and delay
-        self.print_log_message(f"Arrived at {self.next_node}")
+        self.log_event_message(f"Arrived at {self.next_node}")
         self.current_node = self.next_node
         self.next_node = None
         self.delay += travel_time

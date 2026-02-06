@@ -7,8 +7,10 @@ Contains loggers for different types of events:
 """
 from .base_logger import BaseLogger
 from .edge_logger import EdgeLogger
+from .event_logger import EventLogger
 
 __all__ = [
     "BaseLogger",
     "EdgeLogger",
+    "EventLogger"
 ]

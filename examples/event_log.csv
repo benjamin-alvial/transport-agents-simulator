@@ -1,0 +1,39 @@
+21600.0, 6h00m00.0s, customer_sending, Sent DELIVERY_REQUEST for laptop to platform
+21600.0, 6h00m00.0s, platform, A new auction for laptop has started
+21600.0, 6h00m00.0s, auction0, Bidding for laptop has started. Starting price: 10. Duration: 1800
+21600.0, 6h00m00.0s, platform, Sent AUCTION_NOTIFICATION for laptop to all subscribed couriers
+21600.0, 6h00m00.0s, courier1, Received auction notification.
+21600.0, 6h00m00.0s, courier1, Generates bid of 3 to add laptop parcel to vehicle
+21600.0, 6h00m00.0s, courier2, Received auction notification.
+21600.0, 6h00m00.0s, courier2, Generates bid of 9 to add laptop parcel to vehicle
+21900.0, 6h05m00.0s, courier1, Sent BID_REQUEST for laptop for value 3
+21900.0, 6h05m00.0s, courier2, Sent BID_REQUEST for laptop for value 9
+21900.0, 6h05m00.0s, auction0, Bid by courier1 for value 3 submitted.
+21900.0, 6h05m00.0s, auction0, Bid by courier2 for value 9 submitted.
+23400.0, 6h30m00.0s, auction0, Bidding has ended.
+23400.0, 6h30m00.0s, courier1, Won the auction.
+23400.0, 6h30m00.0s, courier2, Lost the auction.
+23400.0, 6h30m00.0s, courier1, Traveling from 5 to 1 with the sequence [1] and edges [5->1]
+23400.0, 6h30m00.0s, courier1, Traveling through edge 5->1... will arrive in 7.40011s
+23400.1, 6h30m00.1s, bus_01234, Traveling through edge 0->1... will arrive in 7.40011s
+23407.400107142857, 6h30m07.4s, courier1, Arrived at 1
+23407.400107142857, 6h30m07.4s, courier1, Handling stop at node 1
+23407.400107142857, 6h30m07.4s, courier1, Picked up parcel at 1
+23407.400107142857, 6h30m07.4s, courier1, Traveling from 1 to 4 with the sequence [2... 3... 4] and edges [1->2... 2->3... 3->4]
+23407.400107142857, 6h30m07.4s, courier1, Traveling through edge 1->2... will arrive in 7.40011s
+23407.500107142856, 6h30m07.5s, bus_01234, Arrived at 1
+23407.500107142856, 6h30m07.5s, bus_01234, Traveling through edge 1->2... will arrive in 7.58171s
+23414.800214285715, 6h30m14.8s, courier1, Arrived at 2
+23414.800214285715, 6h30m14.8s, courier1, Traveling through edge 2->3... will arrive in 7.40011s
+23415.081821428572, 6h30m15.1s, bus_01234, Arrived at 2
+23415.081821428572, 6h30m15.1s, bus_01234, Traveling through edge 2->3... will arrive in 7.58171s
+23422.200321428572, 6h30m22.2s, courier1, Arrived at 3
+23422.200321428572, 6h30m22.2s, courier1, Traveling through edge 3->4... will arrive in 7.40011s
+23422.663535714288, 6h30m22.7s, bus_01234, Arrived at 3
+23422.663535714288, 6h30m22.7s, bus_01234, Traveling through edge 3->4... will arrive in 7.58171s
+23429.60042857143, 6h30m29.6s, courier1, Arrived at 4
+23429.60042857143, 6h30m29.6s, courier1, Handling stop at node 4
+23429.60042857143, 6h30m29.6s, courier1, Delivered parcel at 4
+23429.60042857143, 6h30m29.6s, courier1, All deliveries complete!
+23430.245250000004, 6h30m30.2s, bus_01234, Arrived at 4
+23430.245250000004, 6h30m30.2s, bus_01234, Journey of bus has ended!

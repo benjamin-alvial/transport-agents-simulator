@@ -49,7 +49,7 @@ class Courier(Agent):
         """"
         Receives a notification that a new auction for a parcel has started.
         """
-        self.print_log_message(f"Received auction notification.")
+        self.log_event_message(f"Received auction notification.")
         auction = message.content["auction"]
         parcel = auction.auctioned_parcel
 
@@ -58,12 +58,12 @@ class Courier(Agent):
             BID_VALUE = random.randint(1, 10)
             bid = Bid(self, auction, BID_VALUE)
 
-            self.print_log_message(f"Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
+            self.log_event_message(f"Generates bid of {BID_VALUE} to add {parcel.contents} parcel to vehicle")
             self.schedule_action(delay=300.0, action=self.send_bid_request, data={"bid": bid, "auction": auction})
 
     def handle_winner_notification(self, message: "Message"):
         """ Prints happy message and adds parcel to itinerary and vehicle."""
-        self.print_log_message(f"Won the auction.")
+        self.log_event_message(f"Won the auction.")
         parcel = message.content["parcel"]
         self.itinerary.append(Stop(parcel.origin_node_id, "PICKUP", parcel))
         self.carried_parcels.append(parcel)
@@ -71,7 +71,7 @@ class Courier(Agent):
 
     def handle_loser_notification(self):
         """ Prints sad message."""
-        self.print_log_message(f"Lost the auction.")
+        self.log_event_message(f"Lost the auction.")
 
     def send_bid_request(self, bid: "Bid", auction: "Auction"):
         """
@@ -81,7 +81,7 @@ class Courier(Agent):
             bid: The bid to send
             auction: The auction to be bid on
         """
-        self.print_log_message(f"Sent BID_REQUEST for {auction.auctioned_parcel.contents} for value {bid.value}")
+        self.log_event_message(f"Sent BID_REQUEST for {auction.auctioned_parcel.contents} for value {bid.value}")
         self.send_message(receiver_id=auction.entity_id,
                           msg_type="BID_REQUEST",
                           content={"bid": bid},
@@ -97,7 +97,7 @@ class Courier(Agent):
 
         # No stops left
         if not self.itinerary:
-            self.print_log_message(f"All deliveries complete!")
+            self.log_event_message(f"All deliveries complete!")
             return
 
         # Next stop is just first in itinerary
@@ -115,12 +115,12 @@ class Courier(Agent):
 
         # If already at stop node
         if not self.remaining_nodes:
-            self.print_log_message(f"Already at stop {self.current_node}")
+            self.log_event_message(f"Already at stop {self.current_node}")
             self.handle_stop()
             return
 
         # Start movement
-        self.print_log_message(f"Traveling from {self.current_node} to {self.next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges}")
+        self.log_event_message(f"Traveling from {self.current_node} to {self.next_stop.location_node_id} with the sequence {path_nodes} and edges {path_edges}")
         self.start_travel_to_next_node()
 
     def start_travel_to_next_node(self):
@@ -142,7 +142,7 @@ class Courier(Agent):
         travel_time = edge.get_travel_time()
 
         # Starts traveling
-        self.print_log_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
+        self.log_event_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")
         self.current_edge = edge
         self.current_edge.vehicle_enters(self, self.sim.current_time)
         self.schedule_action(travel_time, self.arrive_at_node)
@@ -156,7 +156,7 @@ class Courier(Agent):
         self.current_edge = None
 
         # Update the courier's position
-        self.print_log_message(f"Arrived at {self.next_node}")
+        self.log_event_message(f"Arrived at {self.next_node}")
         self.current_node = self.next_node
         self.next_node = None
 
@@ -174,18 +174,18 @@ class Courier(Agent):
         Handle pickup or drop-off at a stop.
         """
         stop = self.next_stop
-        self.print_log_message(f"Handling stop at node {self.current_node}")
+        self.log_event_message(f"Handling stop at node {self.current_node}")
 
         # Deliver or pickup
         if stop.stop_type == "PICKUP":
             parcel = stop.parcel
-            self.print_log_message(f"Picked up parcel at {self.current_node}")
+            self.log_event_message(f"Picked up parcel at {self.current_node}")
             self.carried_parcels.append(parcel)
             parcel.state = "BEING_DELIVERED"
             self.itinerary.append(Stop(parcel.destination_node_id, "DROP_OFF", parcel))
         elif stop.stop_type == "DROP_OFF":
             parcel = stop.parcel
-            self.print_log_message(f"Delivered parcel at {self.current_node}")
+            self.log_event_message(f"Delivered parcel at {self.current_node}")
             self.carried_parcels.remove(parcel)
             parcel.state = "DELIVERED"
 

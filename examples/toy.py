@@ -1,6 +1,5 @@
 # Example usage and testing
 from parcel_delivery import Platform, Customer, Courier, Parcel, Kernel, Bus, Network
-from parcel_delivery.loggers import EdgeLogger
 
 if __name__ == "__main__":
 
@@ -43,9 +42,8 @@ if __name__ == "__main__":
 
     # ================= DELIVERY =================
     sim = Kernel()
+    sim.initialize_loggers()
     sim.set_network(network)
-    edge_logger = EdgeLogger()
-    sim.add_logger(edge_logger)
 
     # Create entities
     platform = Platform("platform")

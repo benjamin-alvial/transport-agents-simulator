@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Optional, Callable, Any, TYPE_CHECKING
 
+from parcel_delivery.loggers.event_logger import EventLogger
 from parcel_delivery.utils.time_utils import format_time
 
 if TYPE_CHECKING:
@@ -34,11 +35,8 @@ class Entity(ABC):
             raise RuntimeError(f"Entity {self.entity_id} not registered with core")
         return self.sim.schedule(delay, action, data)
 
-    def print_log_message(self, msg: str):
+    def log_event_message(self, msg: str):
         """"
-        Prints the given message preceded by the simulation time at which the event occurs
+        Logs the given message preceded by the simulation time at which the event occurs
         """
-        t_s = self.sim.current_time
-        formatted_time = format_time(t_s)
-        sim_time_string = f"[t={formatted_time}] {self.entity_id}: "
-        print(sim_time_string + msg)
+        EventLogger().log_entry(self.sim.current_time, self.entity_id, msg)

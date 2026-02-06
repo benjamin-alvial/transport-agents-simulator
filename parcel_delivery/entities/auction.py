@@ -24,7 +24,7 @@ class Auction(Agent):
 
     def start_bidding(self):
         """Begins bidding for the auctioned parcel."""
-        self.print_log_message(f"Bidding for {self.auctioned_parcel.contents} has started. Starting price: {self.starting_price}. Duration: {self.duration}")
+        self.log_event_message(f"Bidding for {self.auctioned_parcel.contents} has started. Starting price: {self.starting_price}. Duration: {self.duration}")
         self.schedule_action(self.duration, self.end_bidding)
 
     def receive_message(self, message: "Message"):
@@ -46,14 +46,14 @@ class Auction(Agent):
         """
         bid = message.content["bid"]
         if bid.value <= self.starting_price:
-            self.print_log_message(f"Bid by {bid.courier.entity_id} for value {bid.value} submitted.")
+            self.log_event_message(f"Bid by {bid.courier.entity_id} for value {bid.value} submitted.")
             self.bids.append(bid)
         else:
-            self.print_log_message(f"Bid by {bid.courier.entity_id} for value {bid.value} too high, not accepted.")
+            self.log_event_message(f"Bid by {bid.courier.entity_id} for value {bid.value} too high, not accepted.")
 
     def end_bidding(self):
         """Ends bidding for the auctioned parcel."""
-        self.print_log_message(f"Bidding has ended.")
+        self.log_event_message(f"Bidding has ended.")
         winner = self.determine_winner()
         for bid in self.bids:
             courier = bid.courier
