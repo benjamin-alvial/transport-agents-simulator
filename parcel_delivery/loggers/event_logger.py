@@ -8,5 +8,5 @@ class EventLogger(BaseLogger):
     def log_entry(self, time: float, entity_id: str, event_msg: str):
         formatted_time = format_time(time)
         event_msg = event_msg.replace(",", "...")
-        msg = f"{time}, {formatted_time}, {entity_id}, {event_msg}"
+        msg = f"{time},{formatted_time},{entity_id},{event_msg}"
         self.entries.append(msg)

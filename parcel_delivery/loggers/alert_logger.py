@@ -9,5 +9,5 @@ class AlertLogger(BaseLogger):
 
     def log_entry(self, time: float, entity_id: str, bus_list: List[str], from_node: int, to_node: int):
         formatted_time = format_time(time)
-        msg = f"{time}, {formatted_time}, {entity_id}, {bus_list}, {from_node}, {to_node}"
+        msg = f"{time},{formatted_time},{entity_id},{bus_list},{from_node},{to_node}"
         self.entries.append(msg)
