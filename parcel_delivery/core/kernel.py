@@ -6,7 +6,7 @@ from parcel_delivery.core.entity import Entity
 from parcel_delivery.core.event import Event
 from parcel_delivery.core.message import Message
 from parcel_delivery.environment.network import Network
-from parcel_delivery.loggers import EdgeLogger, EventLogger
+from parcel_delivery.loggers import EdgeLogger, EventLogger, AlertLogger
 from parcel_delivery.loggers.base_logger import BaseLogger
 
 
@@ -57,6 +57,8 @@ class Kernel:
         self.loggers.append(edge_logger)
         event_logger = EventLogger()
         self.loggers.append(event_logger)
+        alert_logger = AlertLogger()
+        self.loggers.append(alert_logger)
 
     def schedule(self, delay: float, action: Callable, data: dict[str, Any] | None = None) -> "Event":
         """
