@@ -51,6 +51,7 @@ if __name__ == "__main__":
     courier1 = Courier("courier1", 5, 20)
     courier2 = Courier("courier2", 5, 20)
     bus_01234 = Bus("bus_01234", [0, 1, 2, 3, 4])
+    second_bus_01234 = Bus("second_bus_01234", [0, 1, 2, 3, 4])
 
     # Register entities to simulation kernel
     sim.register_entity(platform)
@@ -58,6 +59,7 @@ if __name__ == "__main__":
     sim.register_entity(courier1)
     sim.register_entity(courier2)
     sim.register_entity(bus_01234)
+    sim.register_entity(second_bus_01234)
 
     # Register couriers to platform
     platform.register_courier(courier1)
@@ -71,8 +73,10 @@ if __name__ == "__main__":
                        "platform": platform})
 
     # Schedule a bus departure
-    sim.schedule(delay=1800.0+0.1,
+    sim.schedule(delay=1800.0,
                  action=bus_01234.start_journey)
+    sim.schedule(delay=1800.0 + 0.1,
+                 action=second_bus_01234.start_journey)
 
     # Run simulation for the 24 hours of the day
     print("Starting simulation...\n")
@@ -80,4 +84,5 @@ if __name__ == "__main__":
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
 
     network.visualize(show_congestion=True)
-    print("Bus delay: ", bus_01234.get_delay())
+    print("First bus delay: ", bus_01234.get_delay())
+    print("Second bus delay: ", second_bus_01234.get_delay())

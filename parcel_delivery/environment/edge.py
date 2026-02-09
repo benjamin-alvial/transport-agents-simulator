@@ -1,10 +1,11 @@
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Dict
 
-from parcel_delivery.loggers import EdgeLogger
+from parcel_delivery.loggers import EdgeLogger, AlertLogger
+from parcel_delivery.models import Occupancy
 
 if TYPE_CHECKING:
-    from parcel_delivery import Entity
+    from parcel_delivery import Entity, Bus, Courier
 
 
 @dataclass
@@ -15,6 +16,7 @@ class Edge:
     distance: float
     capacity: float = 10.0
     flow: float = 7.0
+    current_occupancies: Dict[str, "Occupancy"] = field(default_factory=dict)
 
     def get_travel_time(self, base_speed: float = 14.0) -> float:
         """
@@ -37,9 +39,23 @@ class Edge:
         self.flow += 1
         EdgeLogger().log_entry(time, vehicle.entity_id, "entry", self.from_node, self.to_node, self.flow)
 
+        if vehicle.vehicle_type == "bus":
+            occ = Occupancy(vehicle.entity_id, "bus", time)
+            self.current_occupancies[vehicle.entity_id] = occ
+
+        if vehicle.vehicle_type == "courier":
+            occ = Occupancy(vehicle.entity_id, "courier", time)
+            self.current_occupancies[vehicle.entity_id] = occ
+            # Generate alert if courier enters an edge occupied by a bus
+            buses = [vid for vid, v in self.current_occupancies.items() if v.vehicle_type == "bus"]
+            if buses:
+                AlertLogger().log_entry(time, vehicle.entity_id, buses, self.from_node, self.to_node)
+
     def vehicle_exits(self, vehicle: "Entity", time: float):
         self.flow -= 1
         EdgeLogger().log_entry(time, vehicle.entity_id, "exit", self.from_node, self.to_node, self.flow)
+
+        self.current_occupancies.pop(vehicle.entity_id)
 
     def congestion_ratio(self) -> float:
         """Returns flow/capacity ratio (0 to 1+)"""
