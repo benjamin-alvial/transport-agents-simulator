@@ -54,4 +54,5 @@ At the end of the simulation, logs of the following will be written:
 
 - `event_log.csv`: tracks each event related to an auction and a delivery
 - `edge_log.csv`: tracks the time at which each vehicle entered and exited an edge in the network
+- `alert_log.csv`: tracks the time courier enters an edge with one or more buses currently traveling it
 
