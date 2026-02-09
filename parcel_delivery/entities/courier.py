@@ -28,6 +28,8 @@ class Courier(Agent):
         self.current_load: float = 0
         self.carried_parcels: List[Parcel] = []
 
+        self.vehicle_type: str = "courier"
+
     def receive_message(self, message: "Message"):
         """
         Handle incoming message.

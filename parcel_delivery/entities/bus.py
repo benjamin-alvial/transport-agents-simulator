@@ -20,6 +20,7 @@ class Bus(Entity):
         self.remaining_nodes: List[int] = self.route[1:] # Nodes left in the route to visit
         self.next_node: Optional[int] = None
         self.delay: float = 0.0
+        self.vehicle_type: str = "bus"
 
     def get_delay(self) -> float:
         return self.delay

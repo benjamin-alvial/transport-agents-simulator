@@ -2,7 +2,6 @@ from abc import ABC
 from typing import Optional, Callable, Any, TYPE_CHECKING
 
 from parcel_delivery.loggers.event_logger import EventLogger
-from parcel_delivery.utils.time_utils import format_time
 
 if TYPE_CHECKING:
     from parcel_delivery.core.kernel import Kernel
@@ -21,6 +20,7 @@ class Entity(ABC):
     def __init__(self, entity_id: str):
         self.entity_id = entity_id
         self.sim: Optional["Kernel"] = None
+        self.vehicle_type: Optional[str] = None
 
     def schedule_action(self, delay: float, action: Callable, data: dict[str, Any] | None = {}):
         """
