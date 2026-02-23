@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple, Optional
 import heapq
+import xml.etree.ElementTree as ET
 
 from parcel_delivery.environment.edge import Edge
 from parcel_delivery.environment.node import Node
@@ -354,6 +355,33 @@ class Network:
 
         plt.tight_layout()
         plt.show()
+
+    def load_network_from_matsim(self, filepath: str):
+        tree = ET.parse(filepath)
+        root = tree.getroot()
+
+        for node_el in root.find("nodes"):
+            node_id = int(node_el.get("id"))
+            x = float(node_el.get("x"))
+            y = float(node_el.get("y"))
+            self.nodes[node_id] = Node(node_id=node_id, x=x, y=y)
+
+        for link_el in root.find("links"):
+            from_node = int(link_el.get("from"))
+            to_node = int(link_el.get("to"))
+            distance = float(link_el.get("length"))
+            capacity = float(link_el.get("capacity"))
+
+            edge = Edge(
+                from_node=from_node,
+                to_node=to_node,
+                distance=distance,
+                capacity=capacity,
+            )
+
+            if from_node not in self.edges:
+                self.edges[from_node] = {}
+            self.edges[from_node][to_node] = edge
 
     def __repr__(self):
         total_edges = sum(len(neighbors) for neighbors in self.edges.values())
