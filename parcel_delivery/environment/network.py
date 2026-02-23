@@ -107,16 +107,6 @@ class Network:
                     congested.append(edge)
         return congested
 
-    def calculate_delay(self, node_sequence: List[int]) -> float:
-        """Calculates the total delay (considering congestion) for a sequence of nodes"""
-        delay = 0.0
-        for i in range(0,len(node_sequence)-1):
-            edge = self.get_edge(node_sequence[i], node_sequence[i+1])
-            edge_delay = edge.get_travel_time()
-            delay += edge_delay
-        print(f"Total delay for sequence {node_sequence}: {delay}")
-        return delay
-
     def shortest_path_distance(self, start: int, end: int,
                                use_congestion: bool = False) -> float:
         """
