@@ -1,12 +1,11 @@
 # Example usage and testing
-from parcel_delivery import Platform, Customer, Courier, Parcel, Kernel, Bus, Network
+import parcel_delivery.environment.matsim_io as matsim_io
 
 if __name__ == "__main__":
     # ================= NETWORK =================
     # Example: Toy network from MATSim
     print("\n=== Example: Toy Network from MATSim ===\n===")
-    network = Network()
-    network.load_network_from_matsim("network_scenario_1.xml")
+    network = matsim_io.load_network_from_matsim("network_scenario_1.xml")
 
     edge = network.get_edge(2, 6)
     edge.flow = 900
