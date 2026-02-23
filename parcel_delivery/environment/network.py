@@ -107,56 +107,6 @@ class Network:
                     congested.append(edge)
         return congested
 
-    def shortest_path_distance(self, start: int, end: int,
-                               use_congestion: bool = False) -> float:
-        """
-        Calculate the shortest path distance using Dijkstra's algorithm.
-
-        Args:
-            start: Start node ID
-            end: End node ID
-            use_congestion: If True, use congestion-adjusted travel times
-
-        Returns:
-            Shortest distance (or travel time if use_congestion=True)
-        """
-        if start == end:
-            return 0.0
-
-        if start not in self.nodes or end not in self.nodes:
-            raise ValueError(f"Nodes {start} and {end} must exist")
-
-        # Priority queue: (distance, node)
-        pq = [(0.0, start)]
-        distances = {start: 0.0}
-        visited = set()
-
-        while pq:
-            dist, node = heapq.heappop(pq)
-
-            if node in visited:
-                continue
-            visited.add(node)
-
-            if node == end:
-                return dist
-
-            for neighbor in self.get_neighbors(node):
-                edge = self.edges[node][neighbor]
-
-                # Choose metric based on congestion flag
-                if use_congestion:
-                    edge_cost = edge.get_travel_time()
-                else:
-                    edge_cost = edge.distance
-
-                new_dist = dist + edge_cost
-                if neighbor not in distances or new_dist < distances[neighbor]:
-                    distances[neighbor] = new_dist
-                    heapq.heappush(pq, (new_dist, neighbor))
-
-        return float('inf')  # No path found
-
     def shortest_path(self, start: int, end: int,
                       use_congestion: bool = False) -> Tuple[List[int], List, float]:
         """
