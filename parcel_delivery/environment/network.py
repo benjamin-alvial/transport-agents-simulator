@@ -271,9 +271,7 @@ class Network:
                     width = 2 if highlighted else 1
 
                 # Curve only if edge exists in both directions
-                rad = 0.25 if is_bidirectional(u, v) else 0.0
-                if rad != 0:
-                    rad *= 1 if u < v else -1
+                rad = 0.10 if is_bidirectional(u, v) else 0.0
 
                 arrow = FancyArrowPatch(
                     (n1.x, n1.y),
