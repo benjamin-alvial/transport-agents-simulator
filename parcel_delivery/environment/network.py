@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
 import heapq
 
 from parcel_delivery.environment.edge import Edge
@@ -15,6 +15,7 @@ class Network:
         self.nodes: Dict[int, "Node"] = {}
         self.edges: Dict[int, Dict[int, "Edge"]] = {}
         # edges[from_node][to_node] = Edge object
+        self.edges_by_link_id: Dict[int, "Edge"] = {}
 
     def add_node(self, node_id: int, x_coord: float, y_coord: float, label: str = ""):
         """Add a node to the network"""
@@ -108,9 +109,10 @@ class Network:
         return congested
 
     def shortest_path(self, start: int, end: int,
-                      use_congestion: bool = False) -> Tuple[List[int], List, float]:
+                      sim_time_seconds: float = None) -> Tuple[List[int], List, float]:
         """
         Calculate the shortest path using Dijkstra's algorithm.
+        If time is specified, congestion is considered using historical data; if not, regular distance is used.
 
         Returns:
             (path_nodes, path_edges, distance)
@@ -140,8 +142,8 @@ class Network:
                 edge = self.edges[node][neighbor]
 
                 edge_cost = (
-                    edge.get_travel_time()
-                    if use_congestion
+                    edge.get_travel_time(sim_time_seconds)
+                    if sim_time_seconds
                     else edge.distance
                 )
 

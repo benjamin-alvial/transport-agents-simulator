@@ -52,7 +52,7 @@ class Bus(Entity):
             raise RuntimeError(
                 f"No edge between {self.current_node} and {self.next_node}"
             )
-        travel_time = edge.get_travel_time()
+        travel_time = edge.get_travel_time(self.sim.current_time)
 
         # Starts traveling
         self.log_event_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")

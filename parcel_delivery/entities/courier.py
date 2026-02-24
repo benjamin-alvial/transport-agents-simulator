@@ -105,10 +105,11 @@ class Courier(Agent):
         # Next stop is just first in itinerary
         self.next_stop = self.itinerary[0]
 
-        # Calculate the shortest path of nodes to travel to the next stop
+        # Calculate the shortest path of nodes to travel to the next stop at the given time
         path_nodes, path_edges, distance = self.sim.network.shortest_path(
             self.current_node,
-            self.next_stop.location_node_id)
+            self.next_stop.location_node_id,
+            self.sim.current_time)
 
         # Normalize path: remove current node if present
         if path_nodes and path_nodes[0] == self.current_node:
@@ -141,7 +142,7 @@ class Courier(Agent):
             raise RuntimeError(
                 f"No edge between {self.current_node} and {self.next_node}"
             )
-        travel_time = edge.get_travel_time()
+        travel_time = edge.get_travel_time(self.sim.current_time)
 
         # Starts traveling
         self.log_event_message(f"Traveling through edge {edge}, will arrive in {travel_time:.5f}s")

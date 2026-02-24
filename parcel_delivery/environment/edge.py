@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from parcel_delivery.loggers import EdgeLogger, AlertLogger
 from parcel_delivery.models import Occupancy
@@ -16,24 +16,28 @@ class Edge:
     distance: float
     capacity: float = 10.0
     flow: float = 7.0
+    base_speed: float = 27.78
     current_occupancies: Dict[str, "Occupancy"] = field(default_factory=dict)
+    link_id: Optional[int] = None
 
-    def get_travel_time(self, base_speed: float = 14.0) -> float:
+    def __post_init__(self):
+        self.historic_travel_times: List[float] = [self.distance/self.base_speed] * 96
+
+    def get_travel_time_with_bpr(self) -> float:
         """
         Calculate travel time considering congestion using BPR function.
-
-        Args:
-            base_speed: Free-flow speed in m/s
-
-        Returns:
-            Travel time in hours
         """
-        free_flow_time = self.distance / base_speed
+        free_flow_time = self.distance / self.base_speed
         # BPR curve for congestion t_0*(1+alpha(q/Q)**beta)
         alpha = 0.15
         beta = 4
         delay = free_flow_time * (1 + alpha * (self.flow / self.capacity) ** beta)
         return delay
+
+    def get_travel_time(self, sim_time_seconds: float) -> float:
+        """Get historic travel time for a given simulation time in seconds."""
+        slot = int(sim_time_seconds // 900) % 96
+        return self.historic_travel_times[slot]
 
     def vehicle_enters(self, vehicle: "Entity", time: float):
         self.flow += 1
