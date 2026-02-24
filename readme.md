@@ -4,6 +4,8 @@ A modular event‑driven simulation framework for experimenting with transport a
 This project aims to study the impacts of freight transport on bus delays and identify different market auction strategies that incentivize optimal courier behavior.
 The simulation is based on a graph-based road network. 
 
+Checkpoint: before removing market.
+
 ---
 
 ## Core concepts
