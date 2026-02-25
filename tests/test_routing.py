@@ -6,6 +6,7 @@ from parcel_delivery_two.environment.edge import Edge
 from parcel_delivery_two.market.courier import Courier
 from parcel_delivery_two.market.vehicle import Vehicle
 from parcel_delivery_two.market.delivery_request import DeliveryRequest
+from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
 from parcel_delivery_two.routing.router import Router
 
 
@@ -125,7 +126,6 @@ class TestRequestAssignment:
         ]
 
         router = _make_router(courier, net)
-        router._adj = router._build_adjacency()
         groups = router._assign_requests_to_vehicles()
 
         assert len(groups[0]) == 2
@@ -142,7 +142,6 @@ class TestRequestAssignment:
         ]
 
         router = _make_router(courier, net)
-        router._adj = router._build_adjacency()
         groups = router._assign_requests_to_vehicles()
 
         assert len(groups[0]) == 3
@@ -157,7 +156,6 @@ class TestRequestAssignment:
         courier.assigned_delivery_requests = [DeliveryRequest("p1", 10, 3)]
 
         router = _make_router(courier, net)
-        router._adj = router._build_adjacency()
         groups = router._assign_requests_to_vehicles()
 
         assert len(groups[0]) == 0
@@ -186,3 +184,98 @@ class TestRouterErrors:
         router = Router(courier, net, [], strategy="DEFAULT")
         with pytest.raises(ValueError, match="Depot node"):
             router.calculate_itinerary()
+
+
+# ---------------------------------------------------------------------------
+# TestRestrictions
+# ---------------------------------------------------------------------------
+#
+# Network with two paths from 2 to 4:
+#   fast path : 2 --(e1)--> 3 --(e2)--> 4   total cost 20 s
+#   slow path : 2 --(e3)--> 4              total cost 30 s
+# Without restrictions the fast path (e1, e2) is preferred.
+# Blocking e1 forces the slow path (e3).
+# ---------------------------------------------------------------------------
+
+def _make_forked_network() -> Network:
+    net = Network()
+    net.add_node(Node(2, 0.0, 0.0))
+    net.add_node(Node(3, 1.0, 0.0))
+    net.add_node(Node(4, 2.0, 0.0))
+    # fast path via node 3 (cost 10+10 = 20 s)
+    net.add_edge(Edge(edge_id=1, from_node=2, to_node=3, distance=100.0, free_flow_speed=10.0))
+    net.add_edge(Edge(edge_id=2, from_node=3, to_node=4, distance=100.0, free_flow_speed=10.0))
+    # slow direct path (cost 30 s)
+    net.add_edge(Edge(edge_id=3, from_node=2, to_node=4, distance=300.0, free_flow_speed=10.0))
+    return net
+
+
+class TestRestrictions:
+    def test_no_restrictions_uses_fast_path(self):
+        net = _make_forked_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle])
+        courier.assigned_delivery_requests = [DeliveryRequest("p1", 10, 4)]
+
+        Router(courier, net, restrictions=[]).calculate_itinerary()
+
+        assert vehicle.itinerary == [1, 2]
+
+    def test_prohibit_all_forces_detour(self):
+        """Blocking e1 for all vehicles makes every vehicle use the slow path."""
+        net = _make_forked_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle])
+        courier.assigned_delivery_requests = [DeliveryRequest("p1", 10, 4)]
+
+        Router(courier, net, restrictions=[ProhibitEdge(1)]).calculate_itinerary()
+
+        assert vehicle.itinerary == [3]
+
+    def test_prohibit_specific_type_forces_detour_for_that_type(self):
+        """e1 blocked for 'car' → car uses slow path; bike still uses fast path."""
+        net = _make_forked_network()
+        # cap car at 10 so the second request falls to bike
+        car = Vehicle("car", 1.0, 10)
+        bike = Vehicle("bike", 1.0, 100)
+        courier = Courier("c1", [car, bike])
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, 4),
+            DeliveryRequest("p2", 10, 4),
+        ]
+
+        Router(courier, net, restrictions=[ProhibitEdge(1, "car")]).calculate_itinerary()
+
+        assert car.itinerary == [3]     # blocked from fast path
+        assert bike.itinerary == [1, 2] # unaffected
+
+    def test_prohibit_other_type_does_not_affect_vehicle(self):
+        """e1 blocked for 'truck' has no effect on 'car'."""
+        net = _make_forked_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle])
+        courier.assigned_delivery_requests = [DeliveryRequest("p1", 10, 4)]
+
+        Router(courier, net, restrictions=[ProhibitEdge(1, "truck")]).calculate_itinerary()
+
+        assert vehicle.itinerary == [1, 2]
+
+    def test_adjacency_cached_per_vehicle_type(self):
+        """Two vehicles of different types produce separate cached adjacency entries."""
+        net = _make_forked_network()
+        # cap car at 10 so both vehicle types each receive one request
+        car = Vehicle("car", 1.0, 10)
+        bike = Vehicle("bike", 1.0, 100)
+        courier = Courier("c1", [car, bike])
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, 4),
+            DeliveryRequest("p2", 10, 4),
+        ]
+
+        router = Router(courier, net, restrictions=[ProhibitEdge(1, "car")])
+        router.calculate_itinerary()
+
+        assert "car" in router._adj
+        assert "bike" in router._adj
+        assert len(router._adj["car"][2]) == 1   # only e3 available
+        assert len(router._adj["bike"][2]) == 2  # e1 and e3 available

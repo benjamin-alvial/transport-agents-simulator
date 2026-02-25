@@ -38,10 +38,11 @@ if __name__ == "__main__":
 
     # ================= RESTRICTIONS =================
     # Prohibit edge 5: 2->6 for all
-    prohibit_edge_all = ProhibitEdge(edge_id=5)
-    # Prohibit edge 15: 2->7 for cars only
-    prohibit_edge_car = ProhibitEdge(edge_id=5, vehicle_type="car")
-    restrictions = [prohibit_edge_car, prohibit_edge_car]
+    prohibit_edge_all_middle = ProhibitEdge(edge_id=5)
+    # Prohibit edge 15: 2->7 and edge 19: 2->5 for cars only
+    prohibit_edge_car_bottom = ProhibitEdge(edge_id=15, vehicle_type="car")
+    prohibit_edge_car_top = ProhibitEdge(edge_id=19, vehicle_type="car")
+    restrictions = [prohibit_edge_all_middle, prohibit_edge_car_bottom, prohibit_edge_car_top]
 
     # ================= ROUTING =================
     router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT")
