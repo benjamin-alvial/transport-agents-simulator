@@ -54,7 +54,7 @@ class Network:
         """Render a static plot of the network with labeled nodes.
 
         Nodes are drawn as filled circles with their IDs as labels. Edges
-        are drawn as directed arrows between nodes.
+        are drawn as straight directed arrows between nodes.
         """
         fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -96,8 +96,107 @@ class Network:
         plt.show()
 
     def visualize_dynamic_congestion(self) -> None:
-        """Render a congestion-weighted network visualization.
+        """Render an interactive congestion map with a time-bin slider.
 
-        Not yet implemented.
+        The slider spans a full 24-hour day in 15-minute steps. For each bin:
+
+        * Edges that have data are coloured by the ratio of historic average
+          travel time to free-flow travel time (green ≈ 1 → red ≥ 2).
+        * Edges that have no data for the current bin are drawn in light grey.
+
+        Falls back to :meth:`visualize` when no historic travel times have
+        been loaded on any edge.
         """
-        pass
+        from matplotlib.widgets import Slider
+        import matplotlib.cm as cm
+        import matplotlib.colors as mcolors
+
+        has_data = any(edge.travel_times for edge in self.edges.values())
+        if not has_data:
+            self.visualize()
+            return
+
+        _BIN_SIZE = 900  # 15 minutes
+        all_bins = list(range(0, 86400, _BIN_SIZE))  # 96 bins, 00:00 → 23:45
+
+        cmap = cm.RdYlGn_r
+        norm = mcolors.Normalize(vmin=1.0, vmax=2.0)
+
+        fig, ax = plt.subplots(figsize=(12, 8))
+        plt.subplots_adjust(bottom=0.15)
+
+        # Nodes are static — draw once
+        for node in self.nodes.values():
+            ax.scatter(node.x, node.y, s=400, color="steelblue", zorder=5)
+            ax.text(
+                node.x,
+                node.y,
+                str(node.node_id),
+                fontsize=9,
+                ha="center",
+                va="center",
+                color="white",
+                fontweight="bold",
+                zorder=6,
+            )
+
+        # Edges drawn once; arrow_patch references kept for colour updates
+        arrows = {}
+        for edge in self.edges.values():
+            src = self.nodes[edge.from_node]
+            dst = self.nodes[edge.to_node]
+            ann = ax.annotate(
+                "",
+                xy=(dst.x, dst.y),
+                xytext=(src.x, src.y),
+                arrowprops=dict(
+                    arrowstyle="->",
+                    color="lightgray",
+                    lw=2.0,
+                    shrinkA=12,
+                    shrinkB=12,
+                    connectionstyle=f"arc3,rad=0.1",
+                ),
+            )
+            arrows[edge.edge_id] = ann
+
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_aspect("equal")
+        title = ax.set_title("")
+
+        sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        fig.colorbar(
+            sm, ax=ax,
+            label="Travel time / free-flow travel time",
+            fraction=0.03, pad=0.04,
+        )
+
+        slider_ax = fig.add_axes([0.15, 0.05, 0.7, 0.03])
+        slider = Slider(
+            slider_ax, "Time bin", 0, len(all_bins) - 1,
+            valinit=0, valstep=1,
+        )
+
+        def _fmt(seconds: int) -> str:
+            h, m = divmod(seconds // 60, 60)
+            return f"{h:02d}:{m:02d}"
+
+        def _update(val: float) -> None:
+            bin_start = all_bins[int(val)]
+            for edge in self.edges.values():
+                if bin_start in edge.travel_times:
+                    free_flow_tt = edge.distance / edge.free_flow_speed
+                    ratio = edge.travel_times[bin_start] / free_flow_tt
+                    color = cmap(norm(ratio))
+                else:
+                    color = "lightgray"
+                arrows[edge.edge_id].arrow_patch.set_color(color)
+            title.set_text(f"Road Network — Congestion at {_fmt(bin_start)}")
+            fig.canvas.draw_idle()
+
+        slider.on_changed(_update)
+        _update(0)
+
+        plt.show()

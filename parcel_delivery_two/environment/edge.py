@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 class Edge:
     """A directed road segment between two nodes in the network.
 
@@ -7,6 +10,9 @@ class Edge:
         to_node: ID of the destination node.
         distance: Length of the segment in metres.
         free_flow_speed: Maximum achievable speed on this segment in m/s.
+        travel_times: Historic average travel times keyed by 15-minute bin
+            start (seconds since midnight). Populated by
+            ``matsim_io.load_historic_travel_times``; empty until then.
     """
 
     def __init__(
@@ -22,3 +28,4 @@ class Edge:
         self.to_node = to_node
         self.distance = distance
         self.free_flow_speed = free_flow_speed
+        self.travel_times: Dict[int, float] = {}

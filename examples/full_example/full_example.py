@@ -27,12 +27,12 @@ if __name__ == "__main__":
 
     # ================= NETWORK =================
     # Load MATSim network format into own Network class
-    network = matsim_io.load_network_from_matsim("network_scenario_1.xml")
+    network = matsim_io.load_network_from_matsim("network.xml")
     print("\nGenerating visualization for network...")
     network.visualize()
 
     # MATSim should be run here, or before executing this program
-    matsim_io.load_historic_travel_times("5.events.xml", network)
+    matsim_io.load_historic_travel_times("events.xml", network)
     print("\nGenerating visualization for shortest path on congested network...")
     network.visualize_dynamic_congestion()
 
@@ -40,14 +40,14 @@ if __name__ == "__main__":
     # Prohibit edge 5: 2->6 for all
     prohibit_edge_all = ProhibitEdge(edge_id=5)
     # Prohibit edge 15: 2->7 for cars only
-    prohibit_edge_car = ProhibitEdge(edge_id=5, "car")
+    prohibit_edge_car = ProhibitEdge(edge_id=5, vehicle_type="car")
     restrictions = [prohibit_edge_car, prohibit_edge_car]
 
     # ================= ROUTING =================
     router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT")
     router_2 = Router(courier_1, network, restrictions, strategy="DEFAULT")
     routers = [router_1, router_2]
-    for routers in routers:
+    for router in routers:
         # Calculates shortest path through all deliveries and updates courier's state
         router.calculate_itinerary()
 
