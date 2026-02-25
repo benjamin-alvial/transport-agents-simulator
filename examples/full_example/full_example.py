@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # ================= ROUTING =================
     router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT")
-    router_2 = Router(courier_1, network, restrictions, strategy="DEFAULT")
+    router_2 = Router(courier_2, network, restrictions, strategy="DEFAULT")
     routers = [router_1, router_2]
     for router in routers:
         # Calculates shortest path through all deliveries and updates courier's state
