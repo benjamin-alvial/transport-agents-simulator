@@ -55,7 +55,7 @@ if __name__ == "__main__":
         router.calculate_itinerary()
 
     # ================= BUSES =================
-    bus_263 = Bus("bus_263", route=[2, 6, 3], travel_time_factor=2)
+    bus_263 = Bus("bus_263", itinerary=[5, 7], travel_time_factor=2)
 
     # ================= SIMULATION =================
     sim = Kernel()

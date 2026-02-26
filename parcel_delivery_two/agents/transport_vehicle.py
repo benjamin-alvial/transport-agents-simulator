@@ -18,12 +18,43 @@ class TransportVehicle:
     Attributes:
         entity_id: Unique identifier for this vehicle.
         travel_time_factor: Multiplier applied to base travel times.
+        itinerary: Ordered list of edge IDs to traverse.
     """
 
-    def __init__(self, entity_id: str, travel_time_factor: float = 1.0):
+    def __init__(
+        self,
+        entity_id: str,
+        travel_time_factor: float = 1.0,
+        itinerary: list = None,
+    ):
         self.entity_id = entity_id
         self.travel_time_factor = travel_time_factor
+        self.itinerary = itinerary if itinerary is not None else []
         self._kernel: Optional["Kernel"] = None
+
+    def start_journey(self) -> None:
+        """Begin the journey along the itinerary."""
+        self._log_event(f"Starting journey with {len(self.itinerary)} edges")
+        self._advance(0)
+
+    def _advance(self, index: int) -> None:
+        """Schedule traversal of the edge at *index* in the itinerary."""
+        if index >= len(self.itinerary):
+            self._log_event("Journey complete")
+            return
+        edge_id = self.itinerary[index]
+        self._on_edge_entered(edge_id)
+        edge = self._kernel.network.edges[edge_id]
+        travel_time = self._compute_travel_time(edge)
+        self._kernel.schedule(
+            travel_time,
+            lambda eid=edge_id, idx=index: self._complete_edge(eid, idx),
+        )
+
+    def _complete_edge(self, edge_id: int, index: int) -> None:
+        """Called when the vehicle finishes traversing one edge."""
+        self._on_edge_exited(edge_id)
+        self._advance(index + 1)
 
     def _log_event(self, message: str) -> None:
         """Log a journey event."""
@@ -33,13 +64,24 @@ class TransportVehicle:
             message,
         )
 
-    def _log_edge(self, edge_id: int, event_type: str) -> None:
-        """Log an edge entry/exit event."""
+    def _on_edge_entered(self, edge_id: int) -> None:
+        """Called when the vehicle begins traversing *edge_id*."""
         edge = self._kernel.network.edges[edge_id]
         EdgeLogger().log_entry(
             self._kernel.current_time,
             self.entity_id,
-            event_type,
+            "entry",
+            edge.from_node,
+            edge.to_node,
+        )
+
+    def _on_edge_exited(self, edge_id: int) -> None:
+        """Called when the vehicle finishes traversing *edge_id*."""
+        edge = self._kernel.network.edges[edge_id]
+        EdgeLogger().log_entry(
+            self._kernel.current_time,
+            self.entity_id,
+            "exit",
             edge.from_node,
             edge.to_node,
         )
