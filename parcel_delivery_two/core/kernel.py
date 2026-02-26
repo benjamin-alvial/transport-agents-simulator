@@ -47,7 +47,7 @@ class Kernel:
         """Register a courier entity with the kernel.
 
         Injects this kernel into every vehicle in the courier's fleet and
-        assigns each vehicle a log-friendly ``_entity_id`` of the form
+        assigns each vehicle a log-friendly ``entity_id`` of the form
         ``"<courier_id>_<vehicle_type>_<index>"``.
 
         Args:
@@ -56,7 +56,7 @@ class Kernel:
         self._entities.append(courier)
         for i, vehicle in enumerate(courier.vehicles):
             vehicle._kernel = self
-            vehicle._entity_id = f"{courier.courier_id}_{vehicle.vehicle_type}_{i}"
+            vehicle.entity_id = f"{courier.courier_id}_{vehicle.vehicle_type}_{i}"
 
     def register_entity(self, entity) -> None:
         """Register any entity with the kernel.
