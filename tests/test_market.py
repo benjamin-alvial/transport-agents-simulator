@@ -1,22 +1,25 @@
 import pytest
 from parcel_delivery_two.market.delivery_request import DeliveryRequest
-from parcel_delivery_two.market.vehicle import Vehicle
+from parcel_delivery_two.agents.courier_vehicle import CourierVehicle as Vehicle
 from parcel_delivery_two.market.courier import Courier
-from parcel_delivery_two.market.market import Market, ExcessDemandError
+from parcel_delivery_two.market.market import Market, ExcessDemandError, LocationMismatchError
+
+
+DEPOT = 2
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def make_requests(n: int, weight: float = 10, destination: int = 1):
-    return [DeliveryRequest(f"parcel_{i}", weight=weight, destination=destination)
+def make_requests(n: int, weight: float = 10, origin: int = DEPOT, destination: int = 1):
+    return [DeliveryRequest(f"parcel_{i}", weight=weight, origin=origin, destination=destination)
             for i in range(n)]
 
-def make_courier(courier_id: str, vehicle_type: str, capacity: int, n_vehicles: int):
+def make_courier(courier_id: str, vehicle_type: str, capacity: int, n_vehicles: int, location: int = DEPOT):
     vehicles = [Vehicle(vehicle_type=vehicle_type, travel_time_factor=1, capacity=capacity)
                 for _ in range(n_vehicles)]
-    return Courier(courier_id, vehicles=vehicles)
+    return Courier(courier_id, vehicles=vehicles, location=location)
 
 
 # ---------------------------------------------------------------------------
@@ -25,9 +28,10 @@ def make_courier(courier_id: str, vehicle_type: str, capacity: int, n_vehicles: 
 
 class TestDeliveryRequest:
     def test_attributes(self):
-        r = DeliveryRequest("p1", weight=15.0, destination=5)
+        r = DeliveryRequest("p1", weight=15.0, origin=2, destination=5)
         assert r.name == "p1"
         assert r.weight == 15.0
+        assert r.origin == 2
         assert r.destination == 5
 
 
@@ -63,7 +67,7 @@ class TestCourier:
 
     def test_remaining_capacity_after_assignment(self):
         c = make_courier("c1", "car", capacity=100, n_vehicles=3)
-        c.assigned_delivery_requests.append(DeliveryRequest("p1", weight=50, destination=1))
+        c.assigned_delivery_requests.append(DeliveryRequest("p1", weight=50, origin=2, destination=1))
         assert c.remaining_capacity() == 250
 
 
@@ -146,3 +150,34 @@ class TestMarketEdgeCases:
         courier = make_courier("c1", "car", capacity=100, n_vehicles=1)
         with pytest.raises(ValueError, match="Unknown strategy"):
             Market().assign_delivery_requests([], [courier], strategy="UNKNOWN")
+
+
+# ---------------------------------------------------------------------------
+# Market — location matching
+# ---------------------------------------------------------------------------
+
+class TestMarketLocationMatching:
+    def test_location_mismatch_raises(self):
+        """Requests with different origins than courier location should fail."""
+        courier = make_courier("c1", "car", capacity=100, n_vehicles=1, location=2)
+        requests = [DeliveryRequest("p1", weight=10, origin=5, destination=1)]
+        with pytest.raises(LocationMismatchError):
+            Market().assign_delivery_requests(requests, [courier])
+
+    def test_location_matches_assigns_successfully(self):
+        courier = make_courier("c1", "car", capacity=100, n_vehicles=1, location=2)
+        requests = [DeliveryRequest("p1", weight=10, origin=2, destination=1)]
+        Market().assign_delivery_requests(requests, [courier])
+        assert len(courier.assigned_delivery_requests) == 1
+
+    def test_multiple_couriers_different_locations(self):
+        """Requests should only go to couriers at matching origin."""
+        c1 = make_courier("c1", "car", capacity=100, n_vehicles=1, location=2)
+        c2 = make_courier("c2", "car", capacity=100, n_vehicles=1, location=3)
+        requests = [
+            DeliveryRequest("p1", weight=10, origin=2, destination=1),
+            DeliveryRequest("p2", weight=10, origin=3, destination=1),
+        ]
+        Market().assign_delivery_requests(requests, [c1, c2])
+        assert len(c1.assigned_delivery_requests) == 1
+        assert len(c2.assigned_delivery_requests) == 1
