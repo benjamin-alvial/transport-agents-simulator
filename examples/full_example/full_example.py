@@ -1,8 +1,8 @@
-from parcel_delivery_two.market import DeliveryRequest, Vehicle, Courier, Market
+from parcel_delivery_two.market import DeliveryRequest, Courier, Market
 from parcel_delivery_two.environment import Network, matsim_io
 from parcel_delivery_two.restrictions import ProhibitEdge
 from parcel_delivery_two.routing import Router
-from parcel_delivery_two.agents import Bus
+from parcel_delivery_two.agents import Bus, CourierVehicle
 from parcel_delivery_two.core import Kernel
 from parcel_delivery_two.visualizers import MovementVisualizer
 
@@ -16,10 +16,10 @@ if __name__ == "__main__":
 
     # Two couriers:
     # First with 3 cars of capacity 100 each (should get assigned 30 requests of size 10 each)
-    cars = [Vehicle(vehicle_type="car", travel_time_factor=1, capacity=100) for _ in range(3)]
+    cars = [CourierVehicle(vehicle_type="car", travel_time_factor=1, capacity=100) for _ in range(3)]
     courier_1 = Courier("courier_1", vehicles=cars, location=single_depot_node)
     # Second with 5 bikes of capacity 20 each (should get assigned 10 requests of size 10 each)
-    bikes = [Vehicle(vehicle_type="bike", travel_time_factor=0.5, capacity=20) for _ in range(5)]
+    bikes = [CourierVehicle(vehicle_type="bike", travel_time_factor=0.5, capacity=20) for _ in range(5)]
     courier_2 = Courier("courier_2", vehicles=bikes, location=single_depot_node)
     couriers = [courier_1, courier_2]
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         router.calculate_itinerary()
 
     # ================= BUSES =================
-    bus_263 = Bus("bus_263", [2, 6, 3])
+    bus_263 = Bus("bus_263", route=[2, 6, 3], travel_time_factor=2)
 
     # ================= SIMULATION =================
     sim = Kernel()

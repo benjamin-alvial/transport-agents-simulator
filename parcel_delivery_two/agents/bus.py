@@ -20,8 +20,8 @@ class Bus(TransportVehicle):
         route: Ordered list of node IDs defining the bus path.
     """
 
-    def __init__(self, entity_id: str, route: List[int]):
-        super().__init__(entity_id, travel_time_factor=2.0)
+    def __init__(self, entity_id: str, route: List[int], travel_time_factor: float = 2.0):
+        super().__init__(entity_id, travel_time_factor)
         self.route = route
 
     def start_journey(self) -> None:
