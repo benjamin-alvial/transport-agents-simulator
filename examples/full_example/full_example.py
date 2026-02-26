@@ -4,6 +4,7 @@ from parcel_delivery_two.restrictions import ProhibitEdge
 from parcel_delivery_two.routing import Router
 from parcel_delivery_two.agents import Bus
 from parcel_delivery_two.core import Kernel
+from parcel_delivery_two.visualizers import MovementVisualizer
 
 if __name__ == "__main__":
 
@@ -79,3 +80,5 @@ if __name__ == "__main__":
     print("Starting simulation...\n")
     sim.run(until=86400)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
+    vis = MovementVisualizer(network)
+    vis.visualize()
