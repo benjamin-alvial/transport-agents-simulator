@@ -10,16 +10,17 @@ if __name__ == "__main__":
 
     # ================= MARKET =================
     # 40 requests, each of contents of size 10.
-    destination_node = 3
-    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, destination=destination_node) for i in range(40)]
+    single_depot_node = 2
+    single_destination_node = 3
+    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(40)]
 
     # Two couriers:
     # First with 3 cars of capacity 100 each (should get assigned 30 requests of size 10 each)
     cars = [Vehicle(vehicle_type="car", travel_time_factor=1, capacity=100) for _ in range(3)]
-    courier_1 = Courier("courier_1", vehicles=cars)
+    courier_1 = Courier("courier_1", vehicles=cars, location=single_depot_node)
     # Second with 5 bikes of capacity 20 each (should get assigned 10 requests of size 10 each)
     bikes = [Vehicle(vehicle_type="bike", travel_time_factor=0.5, capacity=20) for _ in range(5)]
-    courier_2 = Courier("courier_2", vehicles=bikes)
+    courier_2 = Courier("courier_2", vehicles=bikes, location=single_depot_node)
     couriers = [courier_1, courier_2]
 
     # Assign the delivery requests to the couriers (couriers will update their state)

@@ -6,8 +6,6 @@ from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.environment.network import Network
 from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
 
-_DEPOT = 2  # All couriers depart from node 2
-
 # Type aliases for readability
 _Adj = Dict[int, List[Tuple[int, int, float]]]          # node -> [(to, edge_id, cost)]
 _CacheKey = Tuple[str, int]                              # (vehicle_type, source_node)
@@ -17,10 +15,10 @@ class Router:
     """Solves a VRP for a courier's fleet and writes itineraries to each vehicle.
 
     The DEFAULT strategy uses a greedy capacity-fill for vehicle assignment and a
-    nearest-neighbour heuristic for stop ordering. All routes depart from node
-    ``_DEPOT`` (node 2). Shortest paths are computed via Dijkstra on free-flow
-    travel times, with adjacency and path caches keyed by vehicle type so that
-    ``ProhibitEdge`` restrictions are respected per vehicle.
+    nearest-neighbour heuristic for stop ordering. All routes depart from the
+    courier's ``location`` (depot node). Shortest paths are computed via Dijkstra
+    on free-flow travel times, with adjacency and path caches keyed by vehicle type
+    so that ``ProhibitEdge`` restrictions are respected per vehicle.
 
     Args:
         courier: The courier whose vehicles will be routed.
@@ -60,8 +58,9 @@ class Router:
         """
         if self.strategy != "DEFAULT":
             raise ValueError(f"Unknown routing strategy: {self.strategy!r}")
-        if _DEPOT not in self.network.nodes:
-            raise ValueError(f"Depot node {_DEPOT} not found in network")
+        depot = self.courier.location
+        if depot not in self.network.nodes:
+            raise ValueError(f"Depot node {depot} not found in network")
 
         vehicle_requests = self._assign_requests_to_vehicles()
 
@@ -200,7 +199,7 @@ class Router:
             Ordered list of edge IDs covering the full route.
         """
         route: List[int] = []
-        current = _DEPOT
+        current = self.courier.location
         remaining = list(requests)
 
         while remaining:

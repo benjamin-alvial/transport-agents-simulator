@@ -14,12 +14,14 @@ class Courier:
     Attributes:
         courier_id: Unique identifier for the courier.
         vehicles: Fleet of vehicles available to this courier.
+        location: Node ID where all vehicles start (depot).
         assigned_delivery_requests: Requests assigned by the market.
     """
 
-    def __init__(self, courier_id: str, vehicles: List[Vehicle]):
+    def __init__(self, courier_id: str, vehicles: List[Vehicle], location: int):
         self.courier_id = courier_id
         self.vehicles = vehicles
+        self.location = location
         self.assigned_delivery_requests: List["DeliveryRequest"] = []
 
     def total_capacity(self) -> float:
