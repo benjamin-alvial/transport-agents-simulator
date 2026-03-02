@@ -12,13 +12,21 @@ class Network:
     directed road segments with a physical distance and a free-flow speed.
 
     Attributes:
-        nodes: Mapping of node_id to Node.
-        edges: Mapping of edge_id to Edge.
+        nodes: Mapping of internal node ID (int) to Node.
+        edges: Mapping of internal edge ID (int) to Edge.
+        node_id_to_matsim: Mapping of internal node ID to original MATSim ID (str).
+        edge_id_to_matsim: Mapping of internal edge ID to original MATSim ID (str).
+        matsim_to_node_id: Mapping of original MATSim node ID (str) to internal ID (int).
+        matsim_to_edge_id: Mapping of original MATSim edge ID (str) to internal ID (int).
     """
 
     def __init__(self):
         self.nodes: Dict[int, Node] = {}
         self.edges: Dict[int, Edge] = {}
+        self.node_id_to_matsim: Dict[int, str] = {}
+        self.edge_id_to_matsim: Dict[int, str] = {}
+        self.matsim_to_node_id: Dict[str, int] = {}
+        self.matsim_to_edge_id: Dict[str, int] = {}
 
     def add_node(self, node: Node) -> None:
         """Add a node to the network.
