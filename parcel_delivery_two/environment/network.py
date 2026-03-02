@@ -1,3 +1,4 @@
+import json
 import matplotlib.pyplot as plt
 from typing import Dict
 
@@ -208,3 +209,30 @@ class Network:
         _update(0)
 
         plt.show()
+
+    def export_for_sigma(self):
+
+        nodes = [
+            {"id": str(n.node_id), "x": n.x, "y": n.y}
+            for n in self.nodes.values()
+        ]
+
+        links = []
+        for edge in self.edges.values():
+            free_flow_tt = edge.distance / edge.free_flow_speed if edge.free_flow_speed > 0 else None
+
+            # precompute ratio per bin (null if no data)
+            congestion = {}
+            if free_flow_tt:
+                for bin_start, tt in edge.travel_times.items():
+                    congestion[bin_start] = tt / free_flow_tt
+
+            links.append({
+                "id": str(edge.edge_id),
+                "source": str(edge.from_node),
+                "target": str(edge.to_node),
+                "congestion": congestion,  # e.g. {0: 1.2, 900: 1.8, ...}
+            })
+
+        with open("network.json", "w") as f:
+            json.dump({"nodes": nodes, "links": links}, f)
