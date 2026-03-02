@@ -210,7 +210,7 @@ class Network:
 
         plt.show()
 
-    def export_for_sigma(self):
+    def export_for_sigma(self, filename):
 
         nodes = [
             {"id": str(n.node_id), "x": n.x, "y": n.y}
@@ -225,7 +225,7 @@ class Network:
             congestion = {}
             if free_flow_tt:
                 for bin_start, tt in edge.travel_times.items():
-                    congestion[bin_start] = tt / free_flow_tt
+                    congestion[str(bin_start)] = tt / free_flow_tt
 
             links.append({
                 "id": str(edge.edge_id),
@@ -234,5 +234,5 @@ class Network:
                 "congestion": congestion,  # e.g. {0: 1.2, 900: 1.8, ...}
             })
 
-        with open("network.json", "w") as f:
+        with open(filename, "w") as f:
             json.dump({"nodes": nodes, "links": links}, f)
