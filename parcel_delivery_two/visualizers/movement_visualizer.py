@@ -7,6 +7,41 @@ from parcel_delivery_two.utils.time_utils import format_time
 # Type alias
 _Segment = Tuple[float, float, int, int]  # (t_entry, t_exit, from_node, to_node)
 
+# Shape assignments: 5 distinct shapes for couriers
+_COURIER_SHAPES = ["o", "s", "^", "D", "v"]  # circle, square, triangle up, diamond, triangle down
+
+
+def _get_entity_shape(entity_id: str) -> str:
+    """Determine marker shape based on entity type and courier assignment.
+    
+    Buses always use triangle up. Vehicles are assigned shapes based on
+    their courier ID to visually group vehicles from the same courier.
+    
+    Args:
+        entity_id: The entity identifier string.
+        
+    Returns:
+        Matplotlib marker character.
+    """
+    if entity_id.startswith("bus"):
+        return "^"
+    
+    # Extract courier number from entity_id
+    # Expected formats: "courier_1", "courier_1_vehicle_0", "courier_2_car_0", etc.
+    if "courier_" in entity_id:
+        # Parse courier number
+        parts = entity_id.split("_")
+        for i, part in enumerate(parts):
+            if part == "courier" and i + 1 < len(parts):
+                try:
+                    courier_num = int(parts[i + 1])
+                    return _COURIER_SHAPES[courier_num % len(_COURIER_SHAPES)]
+                except (ValueError, IndexError):
+                    pass
+    
+    # Default shape for other entities
+    return "o"
+
 
 class MovementVisualizer:
     """Visualises entity movements on a network using EdgeLogger data.
@@ -41,7 +76,12 @@ class MovementVisualizer:
     # Public visualisation methods
     # ------------------------------------------------------------------
 
-    def animate(self, n_frames: int = 300, interval_ms: int = 50) -> None:
+    def animate(
+        self,
+        n_frames: int = 300,
+        interval_ms: int = 50,
+        show_routes: bool = False,
+    ) -> None:
         """Render an auto-playing animation of all entity movements.
 
         The movement window (first entry to last exit) is compressed to
@@ -50,6 +90,8 @@ class MovementVisualizer:
         Args:
             n_frames: Number of animation frames (default 300).
             interval_ms: Milliseconds between frames (default 50 → 20 fps).
+            show_routes: If True, draw semi-transparent route lines showing
+                each entity's full trajectory through the network.
         """
         import matplotlib.pyplot as plt
         import matplotlib.animation as anim
@@ -59,6 +101,11 @@ class MovementVisualizer:
             return
 
         fig, ax = plt.subplots(figsize=(12, 9))
+        
+        # Draw routes first (behind network and markers) if requested
+        if show_routes:
+            self._draw_routes(ax, segments, node_pos)
+        
         markers = self._draw_network_and_markers(ax, segments, node_pos, frame_times[0])
         ax.set_aspect("equal")
         ax.set_xlabel("x")
@@ -77,7 +124,11 @@ class MovementVisualizer:
         )
         plt.show()
 
-    def visualize(self, n_steps: int = 300) -> None:
+    def visualize(
+        self,
+        n_steps: int = 300,
+        show_routes: bool = False,
+    ) -> None:
         """Render an interactive slider view of all entity movements.
 
         A slider beneath the plot lets you scrub freely through the movement
@@ -86,6 +137,8 @@ class MovementVisualizer:
         Args:
             n_steps: Number of discrete time steps the slider snaps to
                 (default 300).
+            show_routes: If True, draw semi-transparent route lines showing
+                each entity's full trajectory through the network.
         """
         import matplotlib.pyplot as plt
         from matplotlib.widgets import Slider
@@ -96,6 +149,10 @@ class MovementVisualizer:
 
         fig, ax = plt.subplots(figsize=(12, 9))
         plt.subplots_adjust(bottom=0.12)
+
+        # Draw routes first (behind network and markers) if requested
+        if show_routes:
+            self._draw_routes(ax, segments, node_pos)
 
         markers = self._draw_network_and_markers(ax, segments, node_pos, frame_times[0])
         title = fig.suptitle(f"t = {format_time(frame_times[0])}", fontsize=12)
@@ -192,30 +249,31 @@ class MovementVisualizer:
                 arrowprops=dict(
                     arrowstyle="->",
                     color="lightgray",
-                    lw=1.5,
+                    lw=1.0,
                     shrinkA=12,
                     shrinkB=12,
                 ),
             )
         for node in self.network.nodes.values():
-            ax.scatter(node.x, node.y, s=350, color="steelblue", zorder=5)
+            ax.scatter(node.x, node.y, s=150, color="steelblue", zorder=5)
             ax.text(
                 node.x, node.y, str(node.node_id),
-                fontsize=9, ha="center", va="center",
+                fontsize=2, ha="center", va="center",
                 color="white", fontweight="bold", zorder=6,
             )
 
-        # Entity markers — buses as triangles, vehicles as circles
+        # Entity markers — shape by courier, color by vehicle
         entity_ids = sorted(segments.keys())
         cmap = plt.cm.tab10
         markers = {}
         for i, eid in enumerate(entity_ids):
             x0, y0 = self._position_at(segments[eid], t_init, node_pos)
+            shape = _get_entity_shape(eid)
             sc = ax.scatter(
                 [x0], [y0],
                 s=200,
                 color=cmap(i % 10),
-                marker="^" if eid.startswith("bus") else "o",
+                marker=shape,
                 edgecolors="white",
                 linewidths=1.5,
                 zorder=7,
@@ -225,6 +283,45 @@ class MovementVisualizer:
 
         ax.legend(loc="upper right", fontsize=8, framealpha=0.85)
         return markers
+
+    def _draw_routes(
+        self,
+        ax,
+        segments: Dict[str, List[_Segment]],
+        node_pos: Dict[int, Tuple[float, float]],
+    ) -> None:
+        """Draw semi-transparent route lines for each entity.
+
+        Connects all traversed edges in order to show the full path
+        taken by each entity through the network.
+
+        Args:
+            ax: The matplotlib axes to draw on.
+            segments: Per-entity movement segments.
+            node_pos: Mapping from node_id to (x, y).
+        """
+        import matplotlib.pyplot as plt
+
+        entity_ids = sorted(segments.keys())
+        cmap = plt.cm.tab10
+
+        for i, eid in enumerate(entity_ids):
+            color = cmap(i % 10)
+            entity_segments = segments[eid]
+
+            # Draw lines for each traversed edge
+            for t_entry, t_exit, from_node, to_node in entity_segments:
+                if from_node in node_pos and to_node in node_pos:
+                    x1, y1 = node_pos[from_node]
+                    x2, y2 = node_pos[to_node]
+                    ax.plot(
+                        [x1, x2],
+                        [y1, y2],
+                        color=color,
+                        alpha=0.95,
+                        linewidth=3.5,
+                        zorder=1,
+                    )
 
     # ------------------------------------------------------------------
     # Log parsing and position interpolation
