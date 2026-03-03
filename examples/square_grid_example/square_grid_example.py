@@ -40,21 +40,43 @@ if __name__ == "__main__":
     # Load MATSim network format into own Network class
     network = matsim_io.load_network_from_matsim("input/square_grid_21x21_network.xml")
     print("\nGenerating visualization for network...")
-    network.visualize() # Works for small networks
+    # network.visualize() # Works for small networks
 
     # MATSim should be run before executing this program
     matsim_io.load_historic_travel_times("input/3.events.xml.gz", network)
     print("\nGenerating visualization for congested network through the day...")
-    network.visualize_dynamic_congestion()  # Works for small networks
-    network.export_for_sigma("output/grid.json")  # Prefer this option for large networks
+    # network.visualize_dynamic_congestion()  # Works for small networks
+    # network.export_for_sigma("output/grid.json")  # Prefer this option for large networks
 
     # ================= RESTRICTIONS =================
-
+    restrictions = []
 
     # ================= ROUTING =================
-
-
-    # ================= BUSES =================
-
+    router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT")
+    router_2 = Router(courier_2, network, restrictions, strategy="DEFAULT")
+    routers = [router_1, router_2]
+    for router in routers:
+        # Calculates shortest path through all deliveries and updates courier's state
+        router.calculate_itinerary()
 
     # ================= SIMULATION =================
+    sim = Kernel()
+    sim.initialize_loggers()
+    sim.set_network(network)
+
+    # Register entities to simulation kernel
+    for courier in couriers:
+        sim.register_courier(courier)
+
+    # Schedule the couriers' departures at 8:00
+    for courier in couriers:
+        for vehicle in courier.vehicles:
+            sim.schedule(delay=28800.0,
+                         action=vehicle.start_journey)
+
+    # Run simulation for the 24 hours of the day
+    print("Starting simulation...\n")
+    sim.run(until=86400)
+    print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
+    vis = MovementVisualizer(network)
+    vis.visualize(show_routes=True)
