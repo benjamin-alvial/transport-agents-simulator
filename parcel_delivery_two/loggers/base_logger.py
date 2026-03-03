@@ -1,4 +1,5 @@
 import csv
+import os
 from typing import List
 
 
@@ -38,7 +39,7 @@ class BaseLogger:
         Each stored string is split on ``,`` to form a row. Existing file
         contents are overwritten.
         """
-        with open(self.filename, "w", newline="") as f:
+        with open(os.path.join("output", self.filename), "w", newline="") as f:
             writer = csv.writer(f)
             for line in self.entries:
                 writer.writerow([cell.strip() for cell in line.split(",")])

@@ -29,14 +29,15 @@ if __name__ == "__main__":
 
     # ================= NETWORK =================
     # Load MATSim network format into own Network class
-    network = matsim_io.load_network_from_matsim("network.xml")
+    network = matsim_io.load_network_from_matsim("input/network.xml")
     print("\nGenerating visualization for network...")
-    network.visualize()
+    network.visualize() # Works for small networks
 
-    # MATSim should be run here, or before executing this program
-    matsim_io.load_historic_travel_times("events.xml", network)
-    print("\nGenerating visualization for shortest path on congested network...")
-    network.visualize_dynamic_congestion()
+    # MATSim should be run before executing this program
+    matsim_io.load_historic_travel_times("input/events.xml", network)
+    print("\nGenerating visualization for congested network through the day...")
+    network.visualize_dynamic_congestion() # Works for small networks
+    network.export_for_sigma("output/network.json")  # Prefer this option for large networks
 
     # ================= RESTRICTIONS =================
     # Prohibit edge 5: 2->6 for all
