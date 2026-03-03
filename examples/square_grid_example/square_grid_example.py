@@ -38,9 +38,15 @@ if __name__ == "__main__":
 
     # ================= NETWORK =================
     # Load MATSim network format into own Network class
-    network = matsim_io.load_network_from_matsim("square_grid_21x21_network.xml")
+    network = matsim_io.load_network_from_matsim("input/square_grid_21x21_network.xml")
     print("\nGenerating visualization for network...")
-    network.visualize()
+    network.visualize() # Works for small networks
+
+    # MATSim should be run before executing this program
+    matsim_io.load_historic_travel_times("input/3.events.xml.gz", network)
+    print("\nGenerating visualization for congested network through the day...")
+    network.visualize_dynamic_congestion()  # Works for small networks
+    network.export_for_sigma("output/grid.json")  # Prefer this option for large networks
 
     # ================= RESTRICTIONS =================
 
