@@ -1,18 +1,18 @@
-28800.0,8h00m00.0s,courier_1_car_0,Starting journey with 5 edges
-28800.0,8h00m00.0s,courier_1_car_1,Starting journey with 5 edges
-28800.0,8h00m00.0s,courier_1_car_2,Starting journey with 5 edges
-28800.0,8h00m00.0s,courier_2_bike_0,Starting journey with 2 edges
-28800.0,8h00m00.0s,courier_2_bike_1,Starting journey with 2 edges
-28800.0,8h00m00.0s,courier_2_bike_2,Starting journey with 2 edges
-28800.0,8h00m00.0s,courier_2_bike_3,Starting journey with 2 edges
-28800.0,8h00m00.0s,courier_2_bike_4,Starting journey with 2 edges
+28800.0,8h00m00.0s,courier1_car_0,Starting journey with 5 edges
+28800.0,8h00m00.0s,courier1_car_1,Starting journey with 5 edges
+28800.0,8h00m00.0s,courier1_car_2,Starting journey with 5 edges
+28800.0,8h00m00.0s,courier2_bike_0,Starting journey with 2 edges
+28800.0,8h00m00.0s,courier2_bike_1,Starting journey with 2 edges
+28800.0,8h00m00.0s,courier2_bike_2,Starting journey with 2 edges
+28800.0,8h00m00.0s,courier2_bike_3,Starting journey with 2 edges
+28800.0,8h00m00.0s,courier2_bike_4,Starting journey with 2 edges
 28800.0,8h00m00.0s,bus_263,Starting journey with 2 edges
-28979.985601151908,8h02m60.0s,courier_2_bike_0,Journey complete
-28979.985601151908,8h02m60.0s,courier_2_bike_1,Journey complete
-28979.985601151908,8h02m60.0s,courier_2_bike_2,Journey complete
-28979.985601151908,8h02m60.0s,courier_2_bike_3,Journey complete
-28979.985601151908,8h02m60.0s,courier_2_bike_4,Journey complete
+28979.985601151908,8h02m60.0s,courier2_bike_0,Journey complete
+28979.985601151908,8h02m60.0s,courier2_bike_1,Journey complete
+28979.985601151908,8h02m60.0s,courier2_bike_2,Journey complete
+28979.985601151908,8h02m60.0s,courier2_bike_3,Journey complete
+28979.985601151908,8h02m60.0s,courier2_bike_4,Journey complete
 29376.0,8h09m36.0s,bus_263,Journey complete
-43848.34845212383,12h10m48.3s,courier_1_car_0,Journey complete
-43848.34845212383,12h10m48.3s,courier_1_car_1,Journey complete
-43848.34845212383,12h10m48.3s,courier_1_car_2,Journey complete
+43848.34845212383,12h10m48.3s,courier1_car_0,Journey complete
+43848.34845212383,12h10m48.3s,courier1_car_1,Journey complete
+43848.34845212383,12h10m48.3s,courier1_car_2,Journey complete

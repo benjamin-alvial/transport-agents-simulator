@@ -2,6 +2,7 @@ from typing import List, Optional, TYPE_CHECKING
 
 from parcel_delivery_two.loggers.edge_logger import EdgeLogger
 from parcel_delivery_two.loggers.event_logger import EventLogger
+from parcel_delivery_two.metrics.metrics_collector import MetricsCollector
 
 if TYPE_CHECKING:
     from parcel_delivery_two.core.kernel import Kernel
@@ -48,12 +49,16 @@ class TransportVehicle:
         travel_time = self._compute_travel_time(edge)
         self._kernel.schedule(
             travel_time,
-            lambda eid=edge_id, idx=index: self._complete_edge(eid, idx),
+            lambda eid=edge_id, idx=index, tt=travel_time: self._complete_edge(eid, idx, tt),
         )
 
-    def _complete_edge(self, edge_id: int, index: int) -> None:
+    def _complete_edge(self, edge_id: int, index: int, travel_time: float) -> None:
         """Called when the vehicle finishes traversing one edge."""
         self._on_edge_exited(edge_id)
+        edge = self._kernel.network.edges[edge_id]
+        MetricsCollector().record_edge_completion(
+            self.entity_id, edge.distance, travel_time
+        )
         self._advance(index + 1)
 
     def _log_event(self, message: str) -> None:

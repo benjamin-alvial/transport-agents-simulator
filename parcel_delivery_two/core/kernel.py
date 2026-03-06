@@ -1,11 +1,14 @@
 import heapq
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, TYPE_CHECKING
 
 from parcel_delivery_two.environment.network import Network
 from parcel_delivery_two.loggers.base_logger import BaseLogger
 from parcel_delivery_two.loggers.edge_logger import EdgeLogger
 from parcel_delivery_two.loggers.event_logger import EventLogger
 from parcel_delivery_two.market.courier import Courier
+
+if TYPE_CHECKING:
+    from parcel_delivery_two.metrics.metrics_collector import MetricsCollector
 
 
 class Kernel:
@@ -15,15 +18,21 @@ class Kernel:
     advances the simulation clock as it processes them. Loggers are
     initialised via :meth:`initialize_loggers` and their CSVs are written
     automatically when :meth:`run` completes.
+
+    Args:
+        metrics_collector: Optional MetricsCollector instance to track
+            simulation metrics. If provided, metrics will be saved to CSV
+            and printed when the simulation ends.
     """
 
-    def __init__(self):
+    def __init__(self, metrics_collector: Optional["MetricsCollector"] = None):
         self.current_time: float = 0.0
         self._event_queue: List[tuple] = []
         self._event_counter: int = 0
         self.network: Optional[Network] = None
         self._entities: list = []
         self.loggers: List[BaseLogger] = []
+        self.metrics_collector: Optional["MetricsCollector"] = metrics_collector
 
     def initialize_loggers(self) -> None:
         """Instantiate and register the default set of loggers.
@@ -90,7 +99,8 @@ class Kernel:
         """Process events until the queue is empty or *until* is reached.
 
         After the event loop finishes, all registered loggers write their
-        accumulated entries to CSV.
+        accumulated entries to CSV. If a metrics_collector is set, metrics
+        are also saved and printed.
 
         Args:
             until: Absolute simulation time at which to stop.
@@ -105,3 +115,6 @@ class Kernel:
         self.current_time = until
         for logger in self.loggers:
             logger.dump_to_csv()
+        if self.metrics_collector is not None:
+            self.metrics_collector.dump_to_csv()
+            self.metrics_collector.print_summary()

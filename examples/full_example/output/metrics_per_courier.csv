@@ -1,0 +1,3 @@
+courier_id,total_distance_m,total_travel_time_s,total_edges_traversed
+courier1,54000.0,45145.04535637149,15
+courier2,50000.0,899.928005759539,10
