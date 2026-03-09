@@ -9,11 +9,16 @@ from parcel_delivery_two.visualizers import MovementVisualizer
 
 if __name__ == "__main__":
 
+    metrics = MetricsCollector()
+
     # ================= MARKET =================
     # 40 requests, each of contents of size 10.
     single_depot_node = 2
     single_destination_node = 3
     delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(40)]
+    # 2 impossible requests that will not be assigned. Should trigger console warnings.
+    delivery_requests.append(DeliveryRequest("parcel_impossible_by_location", weight=10, origin=10, destination=single_depot_node))
+    delivery_requests.append(DeliveryRequest("parcel_impossible_by_capacity", weight=100000000, origin=single_depot_node, destination=single_depot_node))
 
     # Two couriers:
     # First with 3 cars of capacity 100 each (should get assigned 30 requests of size 10 each)
@@ -26,7 +31,8 @@ if __name__ == "__main__":
 
     # Assign the delivery requests to the couriers (couriers will update their state)
     market = Market()
-    market.assign_delivery_requests(delivery_requests=delivery_requests, couriers=couriers, strategy="DEFAULT")
+    assigned, failed = market.assign_delivery_requests(delivery_requests=delivery_requests, couriers=couriers, strategy="DEFAULT")
+    metrics.record_delivery_assignment(assigned, len(delivery_requests))
 
     # ================= NETWORK =================
     # Load MATSim network format into own Network class
@@ -60,7 +66,6 @@ if __name__ == "__main__":
     bus_263 = Bus("bus_263", itinerary=[5, 7], travel_time_factor=2)
 
     # ================= SIMULATION =================
-    metrics = MetricsCollector()
     sim = Kernel(metrics_collector=metrics)
     sim.initialize_loggers()
     sim.set_network(network)

@@ -50,6 +50,8 @@ class MetricsCollector:
         self._courier_metrics: Dict[str, VehicleMetrics] = {}
         self._total_distance = 0.0
         self._total_travel_time = 0.0
+        self._delivery_requests_total = 0
+        self._delivery_requests_assigned = 0
     
     def _get_courier_id(self, entity_id: str) -> str:
         """Extract courier ID from vehicle entity ID.
@@ -127,16 +129,38 @@ class MetricsCollector:
         """
         return dict(self._vehicle_metrics)
     
+    def record_delivery_assignment(self, assigned: int, total: int) -> None:
+        """Record delivery request assignment results.
+
+        Args:
+            assigned: Number of delivery requests successfully assigned.
+            total: Total number of delivery requests.
+        """
+        self._delivery_requests_assigned = assigned
+        self._delivery_requests_total = total
+
+    def get_delivery_assignment_rate(self) -> float:
+        """Get the proportion of delivery requests that were assigned.
+
+        Returns:
+            Float between 0.0 and 1.0 representing the assignment rate.
+        """
+        if self._delivery_requests_total == 0:
+            return 0.0
+        return self._delivery_requests_assigned / self._delivery_requests_total
+
     def reset(self) -> None:
         """Clear all collected metrics."""
         self._vehicle_metrics.clear()
         self._courier_metrics.clear()
         self._total_distance = 0.0
         self._total_travel_time = 0.0
+        self._delivery_requests_total = 0
+        self._delivery_requests_assigned = 0
     
     def get_summary(self) -> Dict[str, Any]:
         """Get a summary of all metrics.
-        
+
         Returns:
             Dictionary with totals, per-vehicle, and per-courier breakdown.
         """
@@ -145,6 +169,9 @@ class MetricsCollector:
             "total_travel_time": self._total_travel_time,
             "vehicle_count": len(self._vehicle_metrics),
             "courier_count": len(self._courier_metrics),
+            "delivery_requests_total": self._delivery_requests_total,
+            "delivery_requests_assigned": self._delivery_requests_assigned,
+            "delivery_assignment_rate": self.get_delivery_assignment_rate(),
             "vehicles": {
                 entity_id: {
                     "distance": m.distance_traveled,
@@ -231,7 +258,10 @@ class MetricsCollector:
             writer.writerow(["total_couriers", len(self._courier_metrics)])
             writer.writerow(["total_distance_m", self._total_distance])
             writer.writerow(["total_travel_time_s", self._total_travel_time])
-            writer.writerow(["average_distance_per_vehicle_m", 
+            writer.writerow(["average_distance_per_vehicle_m",
                            self._total_distance / max(len(self._vehicle_metrics), 1)])
             writer.writerow(["average_travel_time_per_vehicle_s",
                            self._total_travel_time / max(len(self._vehicle_metrics), 1)])
+            writer.writerow(["delivery_requests_total", self._delivery_requests_total])
+            writer.writerow(["delivery_requests_assigned", self._delivery_requests_assigned])
+            writer.writerow(["delivery_assignment_rate", self.get_delivery_assignment_rate()])
