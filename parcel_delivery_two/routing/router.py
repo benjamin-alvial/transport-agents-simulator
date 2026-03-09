@@ -65,6 +65,8 @@ class Router:
         vehicle_requests = self._assign_requests_to_vehicles()
 
         for vehicle, requests in zip(self.courier.vehicles, vehicle_requests):
+            vehicle.assigned_requests = requests
+            vehicle._destination_nodes = {r.destination for r in requests}
             vehicle.itinerary = self._build_vehicle_route(
                 requests, vehicle.vehicle_type
             )
