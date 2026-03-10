@@ -138,7 +138,7 @@ class MovementVisualizer:
             n_steps: Number of discrete time steps the slider snaps to
                 (default 300).
             show_routes: If True, draw semi-transparent route lines showing
-                each entity's full trajectory through the network.
+                each entity's trajectory as it's traversed (builds up over time).
         """
         import matplotlib.pyplot as plt
         from matplotlib.widgets import Slider
@@ -150,9 +150,10 @@ class MovementVisualizer:
         fig, ax = plt.subplots(figsize=(12, 9))
         plt.subplots_adjust(bottom=0.12)
 
-        # Draw routes first (behind network and markers) if requested
+        # Create route lines that will be progressively shown if requested
+        route_lines = {}
         if show_routes:
-            self._draw_routes(ax, segments, node_pos)
+            route_lines = self._create_route_lines(ax, segments, node_pos)
 
         markers = self._draw_network_and_markers(ax, segments, node_pos, frame_times[0])
         title = fig.suptitle(f"t = {format_time(frame_times[0])}", fontsize=12)
@@ -169,9 +170,22 @@ class MovementVisualizer:
 
         def _update(val: float) -> None:
             t = frame_times[int(val)]
+            
+            # Update marker positions
             for eid, sc in markers.items():
                 x, y = self._position_at(segments[eid], t, node_pos)
                 sc.set_offsets([[x, y]])
+            
+            # Update route visibility - show only segments traversed up to time t
+            if show_routes:
+                for eid, lines in route_lines.items():
+                    entity_segments = segments[eid]
+                    for i, line in enumerate(lines):
+                        if i < len(entity_segments):
+                            t_entry, t_exit, _, _ = entity_segments[i]
+                            # Show segment if we've passed its exit time
+                            line.set_visible(t >= t_exit)
+            
             title.set_text(f"t = {format_time(t)}")
             fig.canvas.draw_idle()
 
@@ -322,6 +336,56 @@ class MovementVisualizer:
                         linewidth=3.5,
                         zorder=1,
                     )
+
+    def _create_route_lines(
+        self,
+        ax,
+        segments: Dict[str, List[_Segment]],
+        node_pos: Dict[int, Tuple[float, float]],
+    ) -> Dict[str, List]:
+        """Create route line objects for progressive display.
+
+        Creates line objects for each traversed edge that can be
+        shown/hidden dynamically based on current time.
+
+        Args:
+            ax: The matplotlib axes to draw on.
+            segments: Per-entity movement segments.
+            node_pos: Mapping from node_id to (x, y).
+
+        Returns:
+            Dictionary mapping entity_id to list of line artists.
+        """
+        import matplotlib.pyplot as plt
+
+        entity_ids = sorted(segments.keys())
+        cmap = plt.cm.tab10
+        route_lines = {}
+
+        for i, eid in enumerate(entity_ids):
+            color = cmap(i % 10)
+            entity_segments = segments[eid]
+            lines = []
+
+            # Create line objects for each traversed edge (initially hidden)
+            for t_entry, t_exit, from_node, to_node in entity_segments:
+                if from_node in node_pos and to_node in node_pos:
+                    x1, y1 = node_pos[from_node]
+                    x2, y2 = node_pos[to_node]
+                    (line,) = ax.plot(
+                        [x1, x2],
+                        [y1, y2],
+                        color=color,
+                        alpha=0.95,
+                        linewidth=3.5,
+                        zorder=1,
+                        visible=False,  # Initially hidden
+                    )
+                    lines.append(line)
+            
+            route_lines[eid] = lines
+
+        return route_lines
 
     # ------------------------------------------------------------------
     # Log parsing and position interpolation

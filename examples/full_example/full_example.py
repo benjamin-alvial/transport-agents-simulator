@@ -90,4 +90,4 @@ if __name__ == "__main__":
     sim.run(until=86400)
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
     vis = MovementVisualizer(network)
-    vis.visualize()
+    vis.visualize(show_routes=True)
