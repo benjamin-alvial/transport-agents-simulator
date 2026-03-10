@@ -12,6 +12,17 @@ class VehicleMetrics:
     distance_traveled: float = 0.0
     travel_time: float = 0.0
     edges_traversed: int = 0
+    delivery_times: list = None
+
+    def __post_init__(self):
+        if self.delivery_times is None:
+            self.delivery_times = []
+
+    def get_average_delivery_time(self) -> float:
+        """Get average delivery time for this vehicle/courier."""
+        if not self.delivery_times:
+            return 0.0
+        return sum(self.delivery_times) / len(self.delivery_times)
 
 
 class MetricsCollector:
@@ -150,9 +161,26 @@ class MetricsCollector:
             return 0.0
         return self._delivery_requests_assigned / self._delivery_requests_total
 
-    def record_delivery_completion(self) -> None:
-        """Record that a delivery request has been completed (delivered)."""
+    def record_delivery_completion(self, vehicle_id: str, courier_id: str, delivery_time: float) -> None:
+        """Record that a delivery request has been completed (delivered).
+
+        Args:
+            vehicle_id: ID of the vehicle that made the delivery.
+            courier_id: ID of the courier that owns the vehicle.
+            delivery_time: Time taken to deliver the parcel in seconds.
+        """
         self._delivery_requests_delivered += 1
+
+        # Track delivery time per vehicle
+        if vehicle_id not in self._vehicle_metrics:
+            self._vehicle_metrics[vehicle_id] = VehicleMetrics()
+        self._vehicle_metrics[vehicle_id].delivery_times.append(delivery_time)
+
+        # Track delivery time per courier
+        if courier_id:
+            if courier_id not in self._courier_metrics:
+                self._courier_metrics[courier_id] = VehicleMetrics()
+            self._courier_metrics[courier_id].delivery_times.append(delivery_time)
 
     def get_delivery_completion_rate(self) -> float:
         """Get the proportion of assigned delivery requests that were delivered.
@@ -164,6 +192,19 @@ class MetricsCollector:
         if self._delivery_requests_assigned == 0:
             return 0.0
         return self._delivery_requests_delivered / self._delivery_requests_assigned
+
+    def get_average_delivery_time(self) -> float:
+        """Get the average delivery time across all vehicles.
+
+        Returns:
+            Average time in seconds from journey start to delivery.
+        """
+        all_times = []
+        for metrics in self._vehicle_metrics.values():
+            all_times.extend(metrics.delivery_times)
+        if not all_times:
+            return 0.0
+        return sum(all_times) / len(all_times)
 
     def reset(self) -> None:
         """Clear all collected metrics."""
@@ -191,11 +232,14 @@ class MetricsCollector:
             "delivery_requests_delivered": self._delivery_requests_delivered,
             "delivery_assignment_rate": self.get_delivery_assignment_rate(),
             "delivery_completion_rate": self.get_delivery_completion_rate(),
+            "average_delivery_time_s": self.get_average_delivery_time(),
             "vehicles": {
                 entity_id: {
                     "distance": m.distance_traveled,
                     "travel_time": m.travel_time,
                     "edges": m.edges_traversed,
+                    "avg_delivery_time_s": m.get_average_delivery_time(),
+                    "deliveries_count": len(m.delivery_times),
                 }
                 for entity_id, m in self._vehicle_metrics.items()
             },
@@ -204,6 +248,8 @@ class MetricsCollector:
                     "distance": m.distance_traveled,
                     "travel_time": m.travel_time,
                     "edges": m.edges_traversed,
+                    "avg_delivery_time_s": m.get_average_delivery_time(),
+                    "deliveries_count": len(m.delivery_times),
                 }
                 for courier_id, m in self._courier_metrics.items()
             }
@@ -248,25 +294,31 @@ class MetricsCollector:
         # Write per-vehicle metrics
         with open(os.path.join("output", self.vehicles_filename), "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["entity_id", "distance_traveled_m", "travel_time_s", "edges_traversed"])
+            writer.writerow(["entity_id", "distance_traveled_m", "travel_time_s", "edges_traversed",
+                           "deliveries_count", "avg_delivery_time_s"])
             for entity_id, metrics in self._vehicle_metrics.items():
                 writer.writerow([
                     entity_id,
                     metrics.distance_traveled,
                     metrics.travel_time,
-                    metrics.edges_traversed
+                    metrics.edges_traversed,
+                    len(metrics.delivery_times),
+                    metrics.get_average_delivery_time()
                 ])
-        
+
         # Write per-courier metrics
         with open(os.path.join("output", self.couriers_filename), "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["courier_id", "total_distance_m", "total_travel_time_s", "total_edges_traversed"])
+            writer.writerow(["courier_id", "total_distance_m", "total_travel_time_s", "total_edges_traversed",
+                           "deliveries_count", "avg_delivery_time_s"])
             for courier_id, metrics in self._courier_metrics.items():
                 writer.writerow([
                     courier_id,
                     metrics.distance_traveled,
                     metrics.travel_time,
-                    metrics.edges_traversed
+                    metrics.edges_traversed,
+                    len(metrics.delivery_times),
+                    metrics.get_average_delivery_time()
                 ])
         
         # Write totals and aggregates
@@ -286,3 +338,4 @@ class MetricsCollector:
             writer.writerow(["delivery_requests_delivered", self._delivery_requests_delivered])
             writer.writerow(["delivery_assignment_rate", self.get_delivery_assignment_rate()])
             writer.writerow(["delivery_completion_rate", self.get_delivery_completion_rate()])
+            writer.writerow(["average_delivery_time_s", self.get_average_delivery_time()])

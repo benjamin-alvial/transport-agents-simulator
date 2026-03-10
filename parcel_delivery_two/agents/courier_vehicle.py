@@ -39,6 +39,13 @@ class CourierVehicle(TransportVehicle):
         self.assigned_requests: List["DeliveryRequest"] = []
         self._destination_nodes: set = set()
 
+    def start_journey(self) -> None:
+        """Begin the journey and record start times for all assigned requests."""
+        # Record start time for all assigned delivery requests
+        for req in self.assigned_requests:
+            req.start_time = self._kernel.current_time
+        super().start_journey()
+
     def _complete_edge(self, edge_id: int, index: int, travel_time: float) -> None:
         """Called when the vehicle finishes traversing one edge.
 
@@ -54,9 +61,17 @@ class CourierVehicle(TransportVehicle):
             # Find and log the delivery request(s) for this destination
             for req in self.assigned_requests:
                 if req.destination == current_node:
+                    current_time = self._kernel.current_time
+                    req.completion_time = current_time
+                    delivery_time = req.get_delivery_time()
                     EventLogger().log_entry(
-                        self._kernel.current_time,
+                        current_time,
                         self.entity_id,
                         f"Delivered parcel '{req.name}' to node {current_node}",
                     )
-                    MetricsCollector().record_delivery_completion()
+                    # Extract courier_id from entity_id (format: "{courier_id}_{vehicle_type}_{index}")
+                    courier_id = self.entity_id.split("_")[0] if "_" in self.entity_id else ""
+                    MetricsCollector().record_delivery_completion(
+                        self.entity_id, courier_id, delivery_time
+                    )
+                    break

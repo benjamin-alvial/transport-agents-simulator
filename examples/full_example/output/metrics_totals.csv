@@ -7,6 +7,7 @@ average_distance_per_vehicle_m,12444.444444444445
 average_travel_time_per_vehicle_s,5180.108151347892
 delivery_requests_total,42
 delivery_requests_assigned,40
-delivery_requests_delivered,40
+delivery_requests_delivered,8
 delivery_assignment_rate,0.9523809523809523
-delivery_completion_rate,1.0
+delivery_completion_rate,0.2
+average_delivery_time_s,5755.621670266378
