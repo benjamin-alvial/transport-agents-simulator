@@ -74,4 +74,3 @@ class CourierVehicle(TransportVehicle):
                     MetricsCollector().record_delivery_completion(
                         self.entity_id, courier_id, delivery_time
                     )
-                    break
