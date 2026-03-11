@@ -12,10 +12,10 @@ if __name__ == "__main__":
     metrics = MetricsCollector()
 
     # ================= MARKET =================
-    # 40 requests, each of contents of size 10.
+    # 70 requests, each of contents of size 10.
     single_depot_node = 2
     single_destination_node = 3
-    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(40)]
+    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(70)]
     # 2 impossible requests that will not be assigned. Should trigger console warnings.
     delivery_requests.append(DeliveryRequest("parcel_impossible_by_location", weight=10, origin=10, destination=single_depot_node))
     delivery_requests.append(DeliveryRequest("parcel_impossible_by_capacity", weight=100000000, origin=single_depot_node, destination=single_depot_node))
@@ -27,7 +27,10 @@ if __name__ == "__main__":
     # Second with 5 bikes of capacity 20 each (should get assigned 10 requests of size 10 each)
     bikes = [CourierVehicle(vehicle_type="bike", travel_time_factor=0.5, capacity=20) for _ in range(5)]
     courier_2 = Courier("courier2", vehicles=bikes, location=single_depot_node)
-    couriers = [courier_1, courier_2]
+    # Third with 2 trucks of capacity 150 (should get assigned 30 requests of size 10 each)
+    trucks = [CourierVehicle(vehicle_type="truck", travel_time_factor=1.5, capacity=150) for _ in range(2)]
+    courier_3 = Courier("courier3", vehicles=trucks, location=single_depot_node)
+    couriers = [courier_1, courier_2, courier_3]
 
     # Assign the delivery requests to the couriers (couriers will update their state)
     market = Market()
@@ -52,12 +55,18 @@ if __name__ == "__main__":
     # Prohibit edge 15: 2->7 and edge 19: 2->5 for cars only
     prohibit_edge_car_bottom = ProhibitEdge(edge_id=15, vehicle_type="car")
     prohibit_edge_car_top = ProhibitEdge(edge_id=19, vehicle_type="car")
-    restrictions = [prohibit_edge_all_middle, prohibit_edge_car_bottom, prohibit_edge_car_top]
+    # Prohibit edge 15: 2->7 and edge 19: 2->5 for trucks at 8:00-10:00 only
+    prohibit_edge_truck_bottom_morning = ProhibitEdge(edge_id=15, vehicle_type="truck", time_window=[28800, 36000])
+    prohibit_edge_truck_top_morning = ProhibitEdge(edge_id=19, vehicle_type="truck", time_window=[28800, 36000])
+    restrictions = [prohibit_edge_all_middle, prohibit_edge_car_bottom, prohibit_edge_car_top, prohibit_edge_truck_bottom_morning, prohibit_edge_truck_top_morning]
 
     # ================= ROUTING =================
-    router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT")
-    router_2 = Router(courier_2, network, restrictions, strategy="DEFAULT")
-    routers = [router_1, router_2]
+    # All vehicles depart at 8:00 (28800 seconds)
+    departure_time = 28800.0
+    router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
+    router_2 = Router(courier_2, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
+    router_3 = Router(courier_3, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
+    routers = [router_1, router_2, router_3]
     for router in routers:
         # Calculates shortest path through all deliveries and updates courier's state
         router.calculate_itinerary()

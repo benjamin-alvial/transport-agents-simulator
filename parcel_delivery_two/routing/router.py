@@ -20,11 +20,16 @@ class Router:
     on free-flow travel times, with adjacency and path caches keyed by vehicle type
     so that ``ProhibitEdge`` restrictions are respected per vehicle.
 
+    Time-window restrictions are evaluated at departure_time to determine which
+    edges are available during route planning.
+
     Args:
         courier: The courier whose vehicles will be routed.
         network: The road network to route over.
         restrictions: Edge/vehicle-type prohibitions applied during routing.
         strategy: Routing strategy. Only ``"DEFAULT"`` is currently supported.
+        departure_time: Time in seconds when vehicles depart. Used to evaluate
+            time-window restrictions. If None, time-window restrictions are ignored.
     """
 
     def __init__(
@@ -33,11 +38,13 @@ class Router:
         network: Network,
         restrictions: List[ProhibitEdge],
         strategy: str = "DEFAULT",
+        departure_time: Optional[float] = None,
     ):
         self.courier = courier
         self.network = network
         self.restrictions = restrictions
         self.strategy = strategy
+        self.departure_time = departure_time
         self._adj: Dict[str, _Adj] = {}
         self._dist: Dict[_CacheKey, Dict[int, float]] = {}
         self._pred: Dict[_CacheKey, Dict[int, Optional[int]]] = {}
@@ -88,7 +95,7 @@ class Router:
             prohibited = {
                 r.edge_id
                 for r in self.restrictions
-                if r.blocks(vehicle_type)
+                if r.blocks(vehicle_type, self.departure_time)
             }
             adj: _Adj = {n: [] for n in self.network.nodes}
             for edge in self.network.edges.values():

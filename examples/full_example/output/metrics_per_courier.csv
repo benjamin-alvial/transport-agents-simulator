@@ -1,3 +1,4 @@
 courier_id,total_distance_m,total_travel_time_s,total_edges_traversed,deliveries_count,avg_delivery_time_s
 courier1,54000.0,45145.04535637149,15,30,15048.348452123817
 courier2,50000.0,899.928005759539,10,10,179.98560115190776
+courier3,20000.0,1079.913606911447,4,30,539.9568034557233
