@@ -6,8 +6,8 @@
 28800.0,8h00m00.0s,courier2_bike_2,Starting journey with 2 edges
 28800.0,8h00m00.0s,courier2_bike_3,Starting journey with 2 edges
 28800.0,8h00m00.0s,courier2_bike_4,Starting journey with 2 edges
-28800.0,8h00m00.0s,courier3_truck_0,Starting journey with 2 edges
-28800.0,8h00m00.0s,courier3_truck_1,Starting journey with 2 edges
+28800.0,8h00m00.0s,courier3_truck_0,Starting journey with 5 edges
+28800.0,8h00m00.0s,courier3_truck_1,Starting journey with 5 edges
 28800.0,8h00m00.0s,bus_263,Starting journey with 2 edges
 28979.985601151908,8h02m60.0s,courier2_bike_0,Journey complete
 28979.985601151908,8h02m60.0s,courier2_bike_0,Delivered parcel 'parcel_1' to node 3
@@ -24,39 +24,39 @@
 28979.985601151908,8h02m60.0s,courier2_bike_4,Journey complete
 28979.985601151908,8h02m60.0s,courier2_bike_4,Delivered parcel 'parcel_25' to node 3
 28979.985601151908,8h02m60.0s,courier2_bike_4,Delivered parcel 'parcel_28' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Journey complete
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_2' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_5' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_8' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_11' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_14' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_17' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_20' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_23' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_26' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_29' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_31' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_33' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_35' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_37' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_0,Delivered parcel 'parcel_39' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Journey complete
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_41' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_43' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_45' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_47' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_49' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_51' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_53' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_55' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_57' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_59' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_61' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_63' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_65' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_67' to node 3
-29339.956803455723,8h08m60.0s,courier3_truck_1,Delivered parcel 'parcel_69' to node 3
 29376.0,8h09m36.0s,bus_263,Journey complete
+29771.922246220303,8h16m11.9s,courier3_truck_0,Journey complete
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_2' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_5' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_8' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_11' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_14' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_17' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_20' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_23' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_26' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_29' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_31' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_33' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_35' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_37' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_39' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Journey complete
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_41' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_43' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_45' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_47' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_49' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_51' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_53' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_55' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_57' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_59' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_61' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_63' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_65' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_67' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_69' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_0,Journey complete
 43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_0' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_3' to node 3
