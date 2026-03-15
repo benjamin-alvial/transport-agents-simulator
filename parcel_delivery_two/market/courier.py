@@ -16,12 +16,22 @@ class Courier:
         vehicles: Fleet of vehicles available to this courier.
         location: Node ID where all vehicles start (depot).
         assigned_delivery_requests: Requests assigned by the market.
+        vtt: Value of Travel Time in dollars per second. Used by the router
+            to convert monetary costs (e.g., congestion pricing) into time
+            equivalents for route optimization.
     """
 
-    def __init__(self, courier_id: str, vehicles: List[CourierVehicle], location: int):
+    def __init__(
+        self,
+        courier_id: str,
+        vehicles: List[CourierVehicle],
+        location: int,
+        vtt: float = 30.0/3600,
+    ):
         self.courier_id = courier_id
         self.vehicles = vehicles
         self.location = location
+        self.vtt = vtt
         self.assigned_delivery_requests: List["DeliveryRequest"] = []
 
     def total_capacity(self) -> float:

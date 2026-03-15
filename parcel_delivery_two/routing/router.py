@@ -1,10 +1,11 @@
 import heapq
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from parcel_delivery_two.market.courier import Courier
 from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.environment.network import Network
 from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
+from parcel_delivery_two.restrictions.congestion_pricing import CongestionPricing
 
 # Type aliases for readability
 _Adj = Dict[int, List[Tuple[int, int, float]]]          # node -> [(to, edge_id, cost)]
@@ -23,10 +24,14 @@ class Router:
     Time-window restrictions are evaluated at departure_time to determine which
     edges are available during route planning.
 
+    Congestion pricing costs are converted to time-equivalents using the courier's
+    Value of Travel Time (VTT) and added to edge travel times for routing.
+
     Args:
         courier: The courier whose vehicles will be routed.
         network: The road network to route over.
-        restrictions: Edge/vehicle-type prohibitions applied during routing.
+        restrictions: Edge restrictions applied during routing (ProhibitEdge or
+            CongestionPricing).
         strategy: Routing strategy. Only ``"DEFAULT"`` is currently supported.
         departure_time: Time in seconds when vehicles depart. Used to evaluate
             time-window restrictions. If None, time-window restrictions are ignored.
@@ -36,7 +41,7 @@ class Router:
         self,
         courier: Courier,
         network: Network,
-        restrictions: List[ProhibitEdge],
+        restrictions: List[Union[ProhibitEdge, CongestionPricing]],
         strategy: str = "DEFAULT",
         departure_time: Optional[float] = None,
     ):
@@ -86,23 +91,48 @@ class Router:
         """Return (cached) adjacency for *vehicle_type*, filtered by restrictions.
 
         Args:
-            vehicle_type: Vehicle type string used to filter prohibited edges.
+            vehicle_type: Vehicle type string used to filter prohibited edges
+                and congestion pricing.
 
         Returns:
             Neighbor list mapping each node to reachable (to_node, edge_id, cost) tuples.
+            Costs include travel time plus congestion pricing (converted to time using
+            the courier's VTT).
         """
         if vehicle_type not in self._adj:
-            prohibited = {
-                r.edge_id
-                for r in self.restrictions
-                if r.blocks(vehicle_type, self.departure_time)
-            }
+            # Separate prohibition and congestion pricing restrictions
+            prohibited = set()
+            congestion_costs: Dict[int, float] = {}
+
+            for r in self.restrictions:
+                if isinstance(r, ProhibitEdge):
+                    if r.blocks(vehicle_type, self.departure_time):
+                        prohibited.add(r.edge_id)
+                elif isinstance(r, CongestionPricing):
+                    cost = r.get_cost(vehicle_type, self.departure_time)
+                    if cost > 0:
+                        # Accumulate costs if multiple pricing rules apply to same edge
+                        congestion_costs[r.edge_id] = (
+                            congestion_costs.get(r.edge_id, 0.0) + cost
+                        )
+
             adj: _Adj = {n: [] for n in self.network.nodes}
+            vtt = self.courier.vtt
+
             for edge in self.network.edges.values():
                 if edge.edge_id in prohibited:
                     continue
-                cost = edge.distance / edge.free_flow_speed
-                adj[edge.from_node].append((edge.to_node, edge.edge_id, cost))
+
+                # Base travel time cost
+                travel_time = edge.distance / edge.free_flow_speed
+
+                # Add congestion pricing cost (converted to time using VTT)
+                if edge.edge_id in congestion_costs and vtt > 0:
+                    congestion_time = congestion_costs[edge.edge_id] / vtt
+                    travel_time += congestion_time
+
+                adj[edge.from_node].append((edge.to_node, edge.edge_id, travel_time))
+
             self._adj[vehicle_type] = adj
         return self._adj[vehicle_type]
 

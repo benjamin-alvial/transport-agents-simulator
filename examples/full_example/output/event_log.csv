@@ -8,85 +8,107 @@
 28800.0,8h00m00.0s,courier2_bike_4,Starting journey with 2 edges
 28800.0,8h00m00.0s,courier3_truck_0,Starting journey with 5 edges
 28800.0,8h00m00.0s,courier3_truck_1,Starting journey with 5 edges
+28800.0,8h00m00.0s,courier4_big_truck_0,Starting journey with 5 edges
 28800.0,8h00m00.0s,bus_263,Starting journey with 2 edges
 28979.985601151908,8h02m60.0s,courier2_bike_0,Journey complete
 28979.985601151908,8h02m60.0s,courier2_bike_0,Delivered parcel 'parcel_1' to node 3
-28979.985601151908,8h02m60.0s,courier2_bike_0,Delivered parcel 'parcel_4' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_0,Delivered parcel 'parcel_5' to node 3
 28979.985601151908,8h02m60.0s,courier2_bike_1,Journey complete
-28979.985601151908,8h02m60.0s,courier2_bike_1,Delivered parcel 'parcel_7' to node 3
-28979.985601151908,8h02m60.0s,courier2_bike_1,Delivered parcel 'parcel_10' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_1,Delivered parcel 'parcel_9' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_1,Delivered parcel 'parcel_13' to node 3
 28979.985601151908,8h02m60.0s,courier2_bike_2,Journey complete
-28979.985601151908,8h02m60.0s,courier2_bike_2,Delivered parcel 'parcel_13' to node 3
-28979.985601151908,8h02m60.0s,courier2_bike_2,Delivered parcel 'parcel_16' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_2,Delivered parcel 'parcel_17' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_2,Delivered parcel 'parcel_21' to node 3
 28979.985601151908,8h02m60.0s,courier2_bike_3,Journey complete
-28979.985601151908,8h02m60.0s,courier2_bike_3,Delivered parcel 'parcel_19' to node 3
-28979.985601151908,8h02m60.0s,courier2_bike_3,Delivered parcel 'parcel_22' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_3,Delivered parcel 'parcel_25' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_3,Delivered parcel 'parcel_29' to node 3
 28979.985601151908,8h02m60.0s,courier2_bike_4,Journey complete
-28979.985601151908,8h02m60.0s,courier2_bike_4,Delivered parcel 'parcel_25' to node 3
-28979.985601151908,8h02m60.0s,courier2_bike_4,Delivered parcel 'parcel_28' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_4,Delivered parcel 'parcel_33' to node 3
+28979.985601151908,8h02m60.0s,courier2_bike_4,Delivered parcel 'parcel_37' to node 3
 29376.0,8h09m36.0s,bus_263,Journey complete
 29771.922246220303,8h16m11.9s,courier3_truck_0,Journey complete
 29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_2' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_5' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_8' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_11' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_6' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_10' to node 3
 29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_14' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_17' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_20' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_23' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_18' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_22' to node 3
 29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_26' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_29' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_31' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_33' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_35' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_37' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_39' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_30' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_34' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_38' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_41' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_44' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_47' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_50' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_0,Delivered parcel 'parcel_53' to node 3
 29771.922246220303,8h16m11.9s,courier3_truck_1,Journey complete
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_41' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_43' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_45' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_47' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_49' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_51' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_53' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_55' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_57' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_56' to node 3
 29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_59' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_61' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_63' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_62' to node 3
 29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_65' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_67' to node 3
-29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_69' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_68' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_71' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_73' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_75' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_77' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_79' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_81' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_83' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_85' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_87' to node 3
+29771.922246220303,8h16m11.9s,courier3_truck_1,Delivered parcel 'parcel_89' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Journey complete
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_3' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_7' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_11' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_15' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_19' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_23' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_27' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_31' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_35' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_39' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_42' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_45' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_48' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_51' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_54' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_57' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_60' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_63' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_66' to node 3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,Delivered parcel 'parcel_69' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_0,Journey complete
 43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_0' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_3' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_6' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_9' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_4' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_8' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_12' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_15' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_18' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_21' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_16' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_20' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_24' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_27' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_28' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_32' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_0,Delivered parcel 'parcel_36' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_1,Journey complete
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_30' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_32' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_34' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_36' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_38' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_40' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_42' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_44' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_43' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_46' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_48' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_49' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_52' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_55' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_58' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_61' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_64' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_1,Delivered parcel 'parcel_67' to node 3
 43848.34845212383,12h10m48.3s,courier1_car_2,Journey complete
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_50' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_52' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_54' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_56' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_58' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_60' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_62' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_64' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_66' to node 3
-43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_68' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_70' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_72' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_74' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_76' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_78' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_80' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_82' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_84' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_86' to node 3
+43848.34845212383,12h10m48.3s,courier1_car_2,Delivered parcel 'parcel_88' to node 3

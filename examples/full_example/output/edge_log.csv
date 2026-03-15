@@ -8,6 +8,7 @@
 28800.0,8h00m00.0s,courier2_bike_4,entry,2,5
 28800.0,8h00m00.0s,courier3_truck_0,entry,2,8
 28800.0,8h00m00.0s,courier3_truck_1,entry,2,8
+28800.0,8h00m00.0s,courier4_big_truck_0,entry,2,8
 28800.0,8h00m00.0s,bus_263,entry,2,6
 28803.59971202304,8h00m03.6s,courier1_car_0,exit,2,8
 28803.59971202304,8h00m03.6s,courier1_car_0,entry,8,1
@@ -19,6 +20,8 @@
 28805.399568034558,8h00m05.4s,courier3_truck_0,entry,8,1
 28805.399568034558,8h00m05.4s,courier3_truck_1,exit,2,8
 28805.399568034558,8h00m05.4s,courier3_truck_1,entry,8,1
+28807.199424046077,8h00m07.2s,courier4_big_truck_0,exit,2,8
+28807.199424046077,8h00m07.2s,courier4_big_truck_0,entry,8,1
 28889.992800575954,8h01m30.0s,courier2_bike_0,exit,2,5
 28889.992800575954,8h01m30.0s,courier2_bike_0,entry,5,3
 28889.992800575954,8h01m30.0s,courier2_bike_1,exit,2,5
@@ -46,6 +49,8 @@
 29069.97840172786,8h04m30.0s,courier3_truck_1,entry,1,4
 29088.0,8h04m48.0s,bus_263,exit,2,6
 29088.0,8h04m48.0s,bus_263,entry,6,3
+29159.971202303816,8h05m60.0s,courier4_big_truck_0,exit,8,1
+29159.971202303816,8h05m60.0s,courier4_big_truck_0,entry,1,4
 29267.96256299496,8h07m48.0s,courier1_car_0,exit,1,4
 29267.96256299496,8h07m48.0s,courier1_car_0,entry,4,9
 29267.96256299496,8h07m48.0s,courier1_car_1,exit,1,4
@@ -63,12 +68,17 @@
 29501.94384449244,8h11m41.9s,courier3_truck_0,entry,4,9
 29501.94384449244,8h11m41.9s,courier3_truck_1,exit,1,4
 29501.94384449244,8h11m41.9s,courier3_truck_1,entry,4,9
+29735.92512598992,8h15m35.9s,courier4_big_truck_0,exit,1,4
+29735.92512598992,8h15m35.9s,courier4_big_truck_0,entry,4,9
 29766.522678185745,8h16m06.5s,courier3_truck_0,exit,4,9
 29766.522678185745,8h16m06.5s,courier3_truck_0,entry,9,3
 29766.522678185745,8h16m06.5s,courier3_truck_1,exit,4,9
 29766.522678185745,8h16m06.5s,courier3_truck_1,entry,9,3
 29771.922246220303,8h16m11.9s,courier3_truck_0,exit,9,3
 29771.922246220303,8h16m11.9s,courier3_truck_1,exit,9,3
+30088.69690424766,8h21m28.7s,courier4_big_truck_0,exit,4,9
+30088.69690424766,8h21m28.7s,courier4_big_truck_0,entry,9,3
+30095.896328293737,8h21m35.9s,courier4_big_truck_0,exit,9,3
 43848.34845212383,12h10m48.3s,courier1_car_0,exit,9,3
 43848.34845212383,12h10m48.3s,courier1_car_1,exit,9,3
 43848.34845212383,12h10m48.3s,courier1_car_2,exit,9,3

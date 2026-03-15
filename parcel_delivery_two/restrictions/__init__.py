@@ -1,1 +1,2 @@
 from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
+from parcel_delivery_two.restrictions.congestion_pricing import CongestionPricing

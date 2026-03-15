@@ -1,7 +1,7 @@
 from parcel_delivery_two import MetricsCollector
 from parcel_delivery_two.market import DeliveryRequest, Courier, Market
 from parcel_delivery_two.environment import Network, matsim_io
-from parcel_delivery_two.restrictions import ProhibitEdge
+from parcel_delivery_two.restrictions import ProhibitEdge, CongestionPricing
 from parcel_delivery_two.routing import Router
 from parcel_delivery_two.agents import Bus, CourierVehicle
 from parcel_delivery_two.core import Kernel
@@ -12,10 +12,10 @@ if __name__ == "__main__":
     metrics = MetricsCollector()
 
     # ================= MARKET =================
-    # 70 requests, each of contents of size 10.
+    # 90 requests, each of contents of size 10.
     single_depot_node = 2
     single_destination_node = 3
-    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(70)]
+    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(90)]
     # 2 impossible requests that will not be assigned. Should trigger console warnings.
     delivery_requests.append(DeliveryRequest("parcel_impossible_by_location", weight=10, origin=10, destination=single_depot_node))
     delivery_requests.append(DeliveryRequest("parcel_impossible_by_capacity", weight=100000000, origin=single_depot_node, destination=single_depot_node))
@@ -30,7 +30,10 @@ if __name__ == "__main__":
     # Third with 2 trucks of capacity 150 (should get assigned 30 requests of size 10 each)
     trucks = [CourierVehicle(vehicle_type="truck", travel_time_factor=1.5, capacity=150) for _ in range(2)]
     courier_3 = Courier("courier3", vehicles=trucks, location=single_depot_node)
-    couriers = [courier_1, courier_2, courier_3]
+    # Fourth with 1 big truck of capacity 200 (should get assigned 20 requests of size 10 each)
+    big_trucks = [CourierVehicle(vehicle_type="big_truck", travel_time_factor=2.0, capacity=200) for _ in range(1)]
+    courier_4 = Courier("courier4", vehicles=big_trucks, location=single_depot_node)
+    couriers = [courier_1, courier_2, courier_3, courier_4]
 
     # Assign the delivery requests to the couriers (couriers will update their state)
     market = Market()
@@ -58,7 +61,14 @@ if __name__ == "__main__":
     # Prohibit edge 15: 2->7 and edge 19: 2->5 for trucks at 8:00-10:00 only
     prohibit_edge_truck_bottom_morning = ProhibitEdge(edge_id=15, vehicle_type="truck", time_window=[28800, 36000])
     prohibit_edge_truck_top_morning = ProhibitEdge(edge_id=19, vehicle_type="truck", time_window=[28800, 36000])
-    restrictions = [prohibit_edge_all_middle, prohibit_edge_car_bottom, prohibit_edge_car_top, prohibit_edge_truck_bottom_morning, prohibit_edge_truck_top_morning]
+    # Congestion pricing at edge 15: 2->7 and edge 19: 2->5 for big trucks at 8:00-10:00 only
+    # Total cost for traversing short path would be $10, in time, this is 10/0.00833=1200s=20min (not worth it anymore)
+    congestion_pricing_big_truck_bottom_morning = CongestionPricing(edge_id=15, cost=5, vehicle_type="big_truck", time_window=[28800, 36000])
+    congestion_pricing_big_truck_top_morning = CongestionPricing(edge_id=19, cost=5, vehicle_type="big_truck", time_window=[28800, 36000])
+    restrictions = [prohibit_edge_all_middle,
+                    prohibit_edge_car_bottom, prohibit_edge_car_top,
+                    prohibit_edge_truck_bottom_morning, prohibit_edge_truck_top_morning,
+                    congestion_pricing_big_truck_bottom_morning, congestion_pricing_big_truck_top_morning]
 
     # ================= ROUTING =================
     # All vehicles depart at 8:00 (28800 seconds)
@@ -66,7 +76,8 @@ if __name__ == "__main__":
     router_1 = Router(courier_1, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
     router_2 = Router(courier_2, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
     router_3 = Router(courier_3, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
-    routers = [router_1, router_2, router_3]
+    router_4 = Router(courier_4, network, restrictions, strategy="DEFAULT", departure_time=departure_time)
+    routers = [router_1, router_2, router_3, router_4]
     for router in routers:
         # Calculates shortest path through all deliveries and updates courier's state
         router.calculate_itinerary()
