@@ -3,6 +3,7 @@ from typing import List, Optional, TYPE_CHECKING
 from parcel_delivery_two.loggers.edge_logger import EdgeLogger
 from parcel_delivery_two.loggers.event_logger import EventLogger
 from parcel_delivery_two.metrics.metrics_collector import MetricsCollector
+from parcel_delivery_two.restrictions.congestion_pricing import CongestionPricing
 
 if TYPE_CHECKING:
     from parcel_delivery_two.core.kernel import Kernel
@@ -56,10 +57,49 @@ class TransportVehicle:
         """Called when the vehicle finishes traversing one edge."""
         self._on_edge_exited(edge_id)
         edge = self._kernel.network.edges[edge_id]
+        monetary_cost = self._compute_edge_cost(edge_id)
         MetricsCollector().record_edge_completion(
-            self.entity_id, edge.distance, travel_time
+            self.entity_id, edge.distance, travel_time, monetary_cost
         )
         self._advance(index + 1)
+
+    def _compute_edge_cost(self, edge_id: int) -> float:
+        """Calculate monetary cost for traversing an edge.
+
+        Computes congestion pricing costs based on the vehicle's courier VTT
+        and any applicable CongestionPricing restrictions.
+
+        Args:
+            edge_id: The ID of the edge being traversed.
+
+        Returns:
+            Monetary cost in dollars for traversing the edge.
+        """
+        # Parse entity_id to get courier_id and vehicle_type
+        # Format: "{courier_id}_{vehicle_type}_{index}" for courier vehicles
+        parts = self.entity_id.split("_")
+        if len(parts) < 3:
+            # Not a courier vehicle (e.g., bus), no congestion pricing
+            return 0.0
+
+        courier_id = parts[0]
+        vehicle_type = parts[1]
+
+        # Get courier's VTT
+        courier = self._kernel.get_courier(courier_id)
+        if courier is None or courier.vtt <= 0:
+            return 0.0
+
+        # Calculate congestion cost from applicable restrictions
+        current_time = self._kernel.current_time
+        total_cost = 0.0
+
+        for restriction in self._kernel.restrictions:
+            if isinstance(restriction, CongestionPricing):
+                if restriction.edge_id == edge_id:
+                    total_cost += restriction.get_cost(vehicle_type, current_time)
+
+        return total_cost
 
     def _log_event(self, message: str) -> None:
         """Log a journey event."""

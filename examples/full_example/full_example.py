@@ -31,8 +31,8 @@ if __name__ == "__main__":
     trucks = [CourierVehicle(vehicle_type="truck", travel_time_factor=1.5, capacity=150) for _ in range(2)]
     courier_3 = Courier("courier3", vehicles=trucks, location=single_depot_node)
     # Fourth with 1 big truck of capacity 200 (should get assigned 20 requests of size 10 each)
-    big_trucks = [CourierVehicle(vehicle_type="big_truck", travel_time_factor=2.0, capacity=200) for _ in range(1)]
-    courier_4 = Courier("courier4", vehicles=big_trucks, location=single_depot_node)
+    bigtrucks = [CourierVehicle(vehicle_type="bigtruck", travel_time_factor=2.0, capacity=200) for _ in range(1)]
+    courier_4 = Courier("courier4", vehicles=bigtrucks, location=single_depot_node)
     couriers = [courier_1, courier_2, courier_3, courier_4]
 
     # Assign the delivery requests to the couriers (couriers will update their state)
@@ -62,13 +62,13 @@ if __name__ == "__main__":
     prohibit_edge_truck_bottom_morning = ProhibitEdge(edge_id=15, vehicle_type="truck", time_window=[28800, 36000])
     prohibit_edge_truck_top_morning = ProhibitEdge(edge_id=19, vehicle_type="truck", time_window=[28800, 36000])
     # Congestion pricing at edge 15: 2->7 and edge 19: 2->5 for big trucks at 8:00-10:00 only
-    # Total cost for traversing short path would be $10, in time, this is 10/0.00833=1200s=20min (not worth it anymore)
-    congestion_pricing_big_truck_bottom_morning = CongestionPricing(edge_id=15, cost=5, vehicle_type="big_truck", time_window=[28800, 36000])
-    congestion_pricing_big_truck_top_morning = CongestionPricing(edge_id=19, cost=5, vehicle_type="big_truck", time_window=[28800, 36000])
+    # Total cost for traversing short path would be $5 (one or the other), in time, this is 5/0.00833=600s=10min (not worth it anymore)
+    congestion_pricing_bigtruck_bottom_morning = CongestionPricing(edge_id=15, cost=5, vehicle_type="bigtruck", time_window=[28800, 36000])
+    congestion_pricing_bigtruck_top_morning = CongestionPricing(edge_id=19, cost=5, vehicle_type="bigtruck", time_window=[28800, 36000])
     restrictions = [prohibit_edge_all_middle,
                     prohibit_edge_car_bottom, prohibit_edge_car_top,
                     prohibit_edge_truck_bottom_morning, prohibit_edge_truck_top_morning,
-                    congestion_pricing_big_truck_bottom_morning, congestion_pricing_big_truck_top_morning]
+                    congestion_pricing_bigtruck_bottom_morning, congestion_pricing_bigtruck_top_morning]
 
     # ================= ROUTING =================
     # All vehicles depart at 8:00 (28800 seconds)
@@ -89,6 +89,7 @@ if __name__ == "__main__":
     sim = Kernel(metrics_collector=metrics)
     sim.initialize_loggers()
     sim.set_network(network)
+    sim.set_restrictions(restrictions)
 
     # Register entities to simulation kernel
     for courier in couriers:

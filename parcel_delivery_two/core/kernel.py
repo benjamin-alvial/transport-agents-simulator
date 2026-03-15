@@ -1,11 +1,13 @@
 import heapq
-from typing import Callable, List, Optional, TYPE_CHECKING
+from typing import Callable, List, Optional, TYPE_CHECKING, Union
 
 from parcel_delivery_two.environment.network import Network
 from parcel_delivery_two.loggers.base_logger import BaseLogger
 from parcel_delivery_two.loggers.edge_logger import EdgeLogger
 from parcel_delivery_two.loggers.event_logger import EventLogger
 from parcel_delivery_two.market.courier import Courier
+from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
+from parcel_delivery_two.restrictions.congestion_pricing import CongestionPricing
 
 if TYPE_CHECKING:
     from parcel_delivery_two.metrics.metrics_collector import MetricsCollector
@@ -33,6 +35,8 @@ class Kernel:
         self._entities: list = []
         self.loggers: List[BaseLogger] = []
         self.metrics_collector: Optional["MetricsCollector"] = metrics_collector
+        self.restrictions: List[Union[ProhibitEdge, CongestionPricing]] = []
+        self._couriers: dict = {}
 
     def initialize_loggers(self) -> None:
         """Instantiate and register the default set of loggers.
@@ -52,6 +56,14 @@ class Kernel:
         """
         self.network = network
 
+    def set_restrictions(self, restrictions: List[Union[ProhibitEdge, CongestionPricing]]) -> None:
+        """Store the restrictions for the simulation.
+
+        Args:
+            restrictions: List of restrictions (ProhibitEdge or CongestionPricing).
+        """
+        self.restrictions = restrictions
+
     def register_courier(self, courier: Courier) -> None:
         """Register a courier entity with the kernel.
 
@@ -63,9 +75,21 @@ class Kernel:
             courier: The Courier to register.
         """
         self._entities.append(courier)
+        self._couriers[courier.courier_id] = courier
         for i, vehicle in enumerate(courier.vehicles):
             vehicle._kernel = self
             vehicle.entity_id = f"{courier.courier_id}_{vehicle.vehicle_type}_{i}"
+
+    def get_courier(self, courier_id: str) -> Optional[Courier]:
+        """Get a courier by ID.
+
+        Args:
+            courier_id: The courier ID to look up.
+
+        Returns:
+            The Courier instance if found, None otherwise.
+        """
+        return self._couriers.get(courier_id)
 
     def register_entity(self, entity) -> None:
         """Register any entity with the kernel.

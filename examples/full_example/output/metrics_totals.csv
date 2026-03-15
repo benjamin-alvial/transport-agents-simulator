@@ -3,6 +3,7 @@ total_vehicles,12
 total_couriers,4
 total_distance_m,166000.0
 total_travel_time_s,49860.71418286537
+total_monetary_cost_usd,0.0
 average_distance_per_vehicle_m,13833.333333333334
 average_travel_time_per_vehicle_s,4155.0595152387805
 delivery_requests_total,92

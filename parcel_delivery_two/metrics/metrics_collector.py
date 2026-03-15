@@ -12,6 +12,7 @@ class VehicleMetrics:
     distance_traveled: float = 0.0
     travel_time: float = 0.0
     edges_traversed: int = 0
+    monetary_cost: float = 0.0
     delivery_times: list = None
 
     def __post_init__(self):
@@ -61,6 +62,7 @@ class MetricsCollector:
         self._courier_metrics: Dict[str, VehicleMetrics] = {}
         self._total_distance = 0.0
         self._total_travel_time = 0.0
+        self._total_monetary_cost = 0.0
         self._delivery_requests_total = 0
         self._delivery_requests_assigned = 0
         self._delivery_requests_delivered = 0
@@ -81,29 +83,33 @@ class MetricsCollector:
         return ""
     
     def record_edge_completion(
-        self, 
-        entity_id: str, 
-        distance: float, 
-        travel_time: float
+        self,
+        entity_id: str,
+        distance: float,
+        travel_time: float,
+        monetary_cost: float = 0.0
     ) -> None:
         """Record completion of an edge traversal.
-        
+
         Args:
             entity_id: Unique identifier of the vehicle.
             distance: Distance of the edge in meters.
             travel_time: Travel time in seconds.
+            monetary_cost: Monetary cost in dollars for traversing the edge.
         """
         if entity_id not in self._vehicle_metrics:
             self._vehicle_metrics[entity_id] = VehicleMetrics()
-        
+
         metrics = self._vehicle_metrics[entity_id]
         metrics.distance_traveled += distance
         metrics.travel_time += travel_time
+        metrics.monetary_cost += monetary_cost
         metrics.edges_traversed += 1
-        
+
         self._total_distance += distance
         self._total_travel_time += travel_time
-        
+        self._total_monetary_cost += monetary_cost
+
         # Also track courier-level metrics (excluding buses)
         courier_id = self._get_courier_id(entity_id)
         if courier_id:
@@ -112,6 +118,7 @@ class MetricsCollector:
             courier_metrics = self._courier_metrics[courier_id]
             courier_metrics.distance_traveled += distance
             courier_metrics.travel_time += travel_time
+            courier_metrics.monetary_cost += monetary_cost
             courier_metrics.edges_traversed += 1
     
     def get_vehicle_metrics(self, entity_id: str) -> VehicleMetrics:
@@ -132,7 +139,11 @@ class MetricsCollector:
     def get_total_travel_time(self) -> float:
         """Get total travel time for all vehicles."""
         return self._total_travel_time
-    
+
+    def get_total_monetary_cost(self) -> float:
+        """Get total monetary cost for all vehicles."""
+        return self._total_monetary_cost
+
     def get_all_vehicle_metrics(self) -> Dict[str, VehicleMetrics]:
         """Get metrics for all vehicles.
         
@@ -212,6 +223,7 @@ class MetricsCollector:
         self._courier_metrics.clear()
         self._total_distance = 0.0
         self._total_travel_time = 0.0
+        self._total_monetary_cost = 0.0
         self._delivery_requests_total = 0
         self._delivery_requests_assigned = 0
         self._delivery_requests_delivered = 0
@@ -225,6 +237,7 @@ class MetricsCollector:
         return {
             "total_distance": self._total_distance,
             "total_travel_time": self._total_travel_time,
+            "total_monetary_cost": self._total_monetary_cost,
             "vehicle_count": len(self._vehicle_metrics),
             "courier_count": len(self._courier_metrics),
             "delivery_requests_total": self._delivery_requests_total,
@@ -237,6 +250,7 @@ class MetricsCollector:
                 entity_id: {
                     "distance": m.distance_traveled,
                     "travel_time": m.travel_time,
+                    "monetary_cost": m.monetary_cost,
                     "edges": m.edges_traversed,
                     "avg_delivery_time_s": m.get_average_delivery_time(),
                     "deliveries_count": len(m.delivery_times),
@@ -247,6 +261,7 @@ class MetricsCollector:
                 courier_id: {
                     "distance": m.distance_traveled,
                     "travel_time": m.travel_time,
+                    "monetary_cost": m.monetary_cost,
                     "edges": m.edges_traversed,
                     "avg_delivery_time_s": m.get_average_delivery_time(),
                     "deliveries_count": len(m.delivery_times),
@@ -264,43 +279,45 @@ class MetricsCollector:
         print(f"Total Vehicles: {summary['vehicle_count']}")
         print(f"Total Distance: {summary['total_distance']:.2f} m")
         print(f"Total Travel Time: {summary['total_travel_time']:.2f} s")
+        print(f"Total Monetary Cost: ${summary['total_monetary_cost']:.2f}")
         print(f"Average Distance per Vehicle: {summary['total_distance'] / max(summary['vehicle_count'], 1):.2f} m")
         print("-" * 60)
         print("Per-Vehicle Breakdown:")
         print("-" * 60)
-        print(f"{'Vehicle ID':<30} {'Distance (m)':<15} {'Time (s)':<12} {'Edges':<8}")
+        print(f"{'Vehicle ID':<30} {'Distance (m)':<15} {'Time (s)':<12} {'Cost ($)':<10} {'Edges':<8}")
         print("-" * 60)
         for entity_id, m in summary["vehicles"].items():
-            print(f"{entity_id:<30} {m['distance']:<15.2f} {m['travel_time']:<12.2f} {m['edges']:<8}")
+            print(f"{entity_id:<30} {m['distance']:<15.2f} {m['travel_time']:<12.2f} {m['monetary_cost']:<10.2f} {m['edges']:<8}")
         if summary['couriers']:
             print("-" * 60)
             print("Per-Courier Breakdown (Aggregated across all vehicles):")
             print("-" * 60)
-            print(f"{'Courier ID':<30} {'Distance (m)':<15} {'Time (s)':<12} {'Edges':<8}")
+            print(f"{'Courier ID':<30} {'Distance (m)':<15} {'Time (s)':<12} {'Cost ($)':<10} {'Edges':<8}")
             print("-" * 60)
             for courier_id, m in summary["couriers"].items():
-                print(f"{courier_id:<30} {m['distance']:<15.2f} {m['travel_time']:<12.2f} {m['edges']:<8}")
+                print(f"{courier_id:<30} {m['distance']:<15.2f} {m['travel_time']:<12.2f} {m['monetary_cost']:<10.2f} {m['edges']:<8}")
         print("=" * 60 + "\n")
     
     def dump_to_csv(self) -> None:
         """Write metrics to CSV files in the output directory.
-        
+
         Writes per-vehicle metrics to output/metrics_per_vehicle.csv,
         per-courier metrics to output/metrics_per_courier.csv,
         and aggregate totals to output/metrics_totals.csv.
         """
         os.makedirs("output", exist_ok=True)
-        
+
         # Write per-vehicle metrics
         with open(os.path.join("output", self.vehicles_filename), "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["entity_id", "distance_traveled_m", "travel_time_s", "edges_traversed",
-                           "deliveries_count", "avg_delivery_time_s"])
+            writer.writerow(["entity_id", "distance_traveled_m", "travel_time_s", "monetary_cost_usd",
+                           "edges_traversed", "deliveries_count", "avg_delivery_time_s"])
             for entity_id, metrics in self._vehicle_metrics.items():
                 writer.writerow([
                     entity_id,
                     metrics.distance_traveled,
                     metrics.travel_time,
+                    metrics.monetary_cost,
                     metrics.edges_traversed,
                     len(metrics.delivery_times),
                     metrics.get_average_delivery_time()
@@ -309,18 +326,19 @@ class MetricsCollector:
         # Write per-courier metrics
         with open(os.path.join("output", self.couriers_filename), "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["courier_id", "total_distance_m", "total_travel_time_s", "total_edges_traversed",
-                           "deliveries_count", "avg_delivery_time_s"])
+            writer.writerow(["courier_id", "total_distance_m", "total_travel_time_s", "total_monetary_cost_usd",
+                           "total_edges_traversed", "deliveries_count", "avg_delivery_time_s"])
             for courier_id, metrics in self._courier_metrics.items():
                 writer.writerow([
                     courier_id,
                     metrics.distance_traveled,
                     metrics.travel_time,
+                    metrics.monetary_cost,
                     metrics.edges_traversed,
                     len(metrics.delivery_times),
                     metrics.get_average_delivery_time()
                 ])
-        
+
         # Write totals and aggregates
         with open(os.path.join("output", self.totals_filename), "w", newline="") as f:
             writer = csv.writer(f)
@@ -329,6 +347,7 @@ class MetricsCollector:
             writer.writerow(["total_couriers", len(self._courier_metrics)])
             writer.writerow(["total_distance_m", self._total_distance])
             writer.writerow(["total_travel_time_s", self._total_travel_time])
+            writer.writerow(["total_monetary_cost_usd", self._total_monetary_cost])
             writer.writerow(["average_distance_per_vehicle_m",
                            self._total_distance / max(len(self._vehicle_metrics), 1)])
             writer.writerow(["average_travel_time_per_vehicle_s",
