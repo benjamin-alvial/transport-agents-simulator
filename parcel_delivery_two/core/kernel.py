@@ -18,8 +18,8 @@ class Kernel:
 
     Maintains a priority-queue of (time, sequence, callable) events and
     advances the simulation clock as it processes them. Loggers are
-    initialised via :meth:`initialize_loggers` and their CSVs are written
-    automatically when :meth:`run` completes.
+    initialised via `initialize_loggers` and their CSVs are written
+    automatically when `run` completes.
 
     Args:
         metrics_collector: Optional MetricsCollector instance to track
@@ -41,9 +41,8 @@ class Kernel:
     def initialize_loggers(self) -> None:
         """Instantiate and register the default set of loggers.
 
-        Attaches one :class:`~parcel_delivery_two.loggers.EdgeLogger` and one
-        :class:`~parcel_delivery_two.loggers.EventLogger`. Their CSV files are
-        written when :meth:`run` finishes.
+        Attaches one `EdgeLogger` and one `EventLogger`.
+        Their CSV files are written when `run` finishes.
         """
         self.loggers.append(EdgeLogger())
         self.loggers.append(EventLogger())
@@ -68,8 +67,8 @@ class Kernel:
         """Register a courier entity with the kernel.
 
         Injects this kernel into every vehicle in the courier's fleet and
-        assigns each vehicle a log-friendly ``entity_id`` of the form
-        ``"<courier_id>_<vehicle_type>_<index>"``.
+        assigns each vehicle a log-friendly `entity_id` of the form
+        "<courier_id>_<vehicle_type>_<index>".
 
         Args:
             courier: The Courier to register.
@@ -94,7 +93,7 @@ class Kernel:
     def register_entity(self, entity) -> None:
         """Register any entity with the kernel.
 
-        Injects this kernel into the entity so that ``entity.start_journey``
+        Injects this kernel into the entity so that `entity.start_journey`
         can schedule DES events.
 
         Args:
