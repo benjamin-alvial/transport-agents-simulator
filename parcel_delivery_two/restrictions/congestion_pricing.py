@@ -28,6 +28,12 @@ class CongestionPricing:
         vehicle_type: Optional[str] = None,
         time_window: Optional[List[float]] = None,
     ):
+        if time_window is not None:
+            if len(time_window) != 2:
+                raise ValueError("time_window must be a list of exactly 2 elements [start, end]")
+            start, end = time_window
+            if end < start:
+                raise ValueError(f"time_window end ({end}) must be >= start ({start})")
         self.edge_id = edge_id
         self.cost = cost
         self.vehicle_type = vehicle_type
