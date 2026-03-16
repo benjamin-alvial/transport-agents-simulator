@@ -1,2 +1,0 @@
-entity_id,distance_traveled_m,travel_time_s,monetary_cost_usd,edges_traversed,deliveries_count,avg_delivery_time_s
-c1_truck_0,2000.0,40.0,10.0,2,0,0.0

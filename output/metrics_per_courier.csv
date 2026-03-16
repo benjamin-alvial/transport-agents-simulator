@@ -1,2 +1,0 @@
-courier_id,total_distance_m,total_travel_time_s,total_monetary_cost_usd,total_edges_traversed,deliveries_count,avg_delivery_time_s
-c1,2000.0,40.0,10.0,2,0,0.0
