@@ -6,6 +6,7 @@ from parcel_delivery_two.routing import Router
 from parcel_delivery_two.agents import Bus, CourierVehicle
 from parcel_delivery_two.core import Kernel
 from parcel_delivery_two.visualizers import MovementVisualizer
+from parcel_delivery_two.metrics import PostSimulationMetrics, VehicleTypeConfig
 
 if __name__ == "__main__":
 
@@ -112,3 +113,48 @@ if __name__ == "__main__":
     print(f"\nSimulation complete. Final time: {sim.current_time:.1f}")
     vis = MovementVisualizer(network)
     vis.visualize(show_routes=True)
+
+    # ================= POST-SIMULATION BUSINESS METRICS =================
+    # Define vehicle type configurations for cost and emission calculations
+    vehicle_configs = {
+        "car": VehicleTypeConfig(
+            fuel_efficiency_km_per_l=15.0,      # ~6.7 L/100km
+            fuel_price_per_liter=1.80,
+            emission_factor_g_co2_per_l=2300,    # Gasoline
+            is_clean_mode=False,
+            labor_cost_per_hour=25.0
+        ),
+        "bike": VehicleTypeConfig(
+            fuel_efficiency_km_per_l=float('inf'),  # No fuel
+            fuel_price_per_liter=0.0,
+            emission_factor_g_co2_per_l=0,
+            is_clean_mode=True,
+            labor_cost_per_hour=18.0
+        ),
+        "truck": VehicleTypeConfig(
+            fuel_efficiency_km_per_l=8.0,       # ~12.5 L/100km
+            fuel_price_per_liter=1.80,
+            emission_factor_g_co2_per_l=2600,    # Diesel
+            is_clean_mode=False,
+            labor_cost_per_hour=30.0
+        ),
+        "bigtruck": VehicleTypeConfig(
+            fuel_efficiency_km_per_l=5.0,       # ~20 L/100km
+            fuel_price_per_liter=1.80,
+            emission_factor_g_co2_per_l=2600,    # Diesel
+            is_clean_mode=False,
+            labor_cost_per_hour=35.0
+        ),
+        "bus": VehicleTypeConfig(
+            fuel_efficiency_km_per_l=4.0,       # ~25 L/100km
+            fuel_price_per_liter=1.80,
+            emission_factor_g_co2_per_l=2600,    # Diesel
+            is_clean_mode=False,
+            labor_cost_per_hour=40.0
+        ),
+    }
+
+    # Create post-simulation analyzer and generate business metrics
+    analyzer = PostSimulationMetrics.from_csvs("output/", vehicle_configs)
+    analyzer.print_summary()
+    analyzer.dump_to_csv("output/business_metrics.csv")
