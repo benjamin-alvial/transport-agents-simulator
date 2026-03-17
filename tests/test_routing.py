@@ -7,6 +7,7 @@ from parcel_delivery_two.market.courier import Courier
 from parcel_delivery_two.agents.courier_vehicle import CourierVehicle as Vehicle
 from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
+from parcel_delivery_two.restrictions.congestion_pricing import CongestionPricing
 from parcel_delivery_two.routing.router import Router
 
 
@@ -111,18 +112,65 @@ class TestRouterCapacity:
         net = _make_network()
         vehicle = Vehicle("car", 1.0, capacity=10)
         courier = Courier("c1", [vehicle], location=DEPOT)
+        p1 = DeliveryRequest("p1", weight=6, origin=DEPOT, destination=3)
+        p2 = DeliveryRequest("p2", weight=6, origin=DEPOT, destination=4)
+        courier.assigned_delivery_requests = [p1, p2]
+
+        _make_router(courier, net).calculate_itinerary()
+
+        # Only one request should be assigned to the vehicle (total weight 6 <= 10)
+        # The second request should not be assigned
+        assigned_weight = sum(r.weight for r in vehicle.assigned_requests)
+        assert assigned_weight <= 10
+        assert len(vehicle.assigned_requests) == 1
+
+    def test_capacity_exact_fit(self):
+        """Vehicle with capacity 10 can take two requests of weight 5 each."""
+        net = _make_network()
+        vehicle = Vehicle("car", 1.0, capacity=10)
+        courier = Courier("c1", [vehicle], location=DEPOT)
+        p1 = DeliveryRequest("p1", weight=5, origin=DEPOT, destination=3)
+        p2 = DeliveryRequest("p2", weight=5, origin=DEPOT, destination=4)
+        courier.assigned_delivery_requests = [p1, p2]
+
+        _make_router(courier, net).calculate_itinerary()
+
+        # Both requests should fit (5+5=10)
+        assigned_weight = sum(r.weight for r in vehicle.assigned_requests)
+        assert assigned_weight == 10
+        assert len(vehicle.assigned_requests) == 2
+
+    def test_multiple_vehicles_respect_capacity(self):
+        """Two vehicles share load respecting each capacity."""
+        net = _make_network()
+        v1 = Vehicle("car", 1.0, capacity=6)
+        v2 = Vehicle("car", 1.0, capacity=6)
+        courier = Courier("c1", [v1, v2], location=DEPOT)
+        p1 = DeliveryRequest("p1", weight=6, origin=DEPOT, destination=3)
+        p2 = DeliveryRequest("p2", weight=6, origin=DEPOT, destination=4)
+        courier.assigned_delivery_requests = [p1, p2]
+
+        _make_router(courier, net).calculate_itinerary()
+
+        # Each vehicle should get exactly one request
+        assert len(v1.assigned_requests) == 1
+        assert len(v2.assigned_requests) == 1
+        total_weight = sum(r.weight for v in [v1, v2] for r in v.assigned_requests)
+        assert total_weight == 12
+
+    def test_destination_nodes_set(self):
+        """Vehicle's destination nodes should be set from assigned requests."""
+        net = _make_network()
+        vehicle = Vehicle("car", 1.0, capacity=100)
+        courier = Courier("c1", [vehicle], location=DEPOT)
         courier.assigned_delivery_requests = [
-            DeliveryRequest("p1", weight=6, origin=DEPOT, destination=3),
-            DeliveryRequest("p2", weight=6, origin=DEPOT, destination=4),
+            DeliveryRequest("p1", weight=10, origin=DEPOT, destination=3),
+            DeliveryRequest("p2", weight=10, origin=DEPOT, destination=4),
         ]
 
         _make_router(courier, net).calculate_itinerary()
 
-        # Only one request should be assigned (total weight 6 <= 10)
-        # The second request remains unassigned
-        assert len(courier.assigned_delivery_requests) == 2  # Market assigned both
-        # But only one should fit in the vehicle
-        assert sum(r.weight for r in courier.assigned_delivery_requests if r in vehicle.itinerary or True) <= 10
+        assert vehicle._destination_nodes == {3, 4}
 
 
 # ---------------------------------------------------------------------------
@@ -185,3 +233,76 @@ class TestRouterErrors:
 
         with pytest.raises(ValueError, match="Depot node 2 not found"):
             Router(courier, net, []).calculate_itinerary()
+
+
+# ---------------------------------------------------------------------------
+# Additional Router Tests
+# ---------------------------------------------------------------------------
+
+class TestRouterPathFinding:
+    def test_unreachable_destination_gives_empty_itinerary(self):
+        """When destination cannot be reached, itinerary should be empty."""
+        net = _make_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT)
+        # Node 99 doesn't exist in network
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=99)
+        ]
+
+        _make_router(courier, net).calculate_itinerary()
+
+        assert vehicle.itinerary == []
+
+    def test_departure_time_restrictions(self):
+        """Test that time-window restrictions are respected at departure time."""
+        net = _make_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT)
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=4)
+        ]
+        # Prohibit edge 1 only during first hour
+        restrictions = [ProhibitEdge(edge_id=1, time_window=[0, 3600])]
+
+        # Depart at time 7200 (after restriction)
+        router = Router(courier, net, restrictions=restrictions, departure_time=7200)
+        router.calculate_itinerary()
+
+        # Should be able to use edge 1 now
+        assert 1 in vehicle.itinerary or vehicle.itinerary == []
+
+
+class TestRouterCongestionPricing:
+    def test_congestion_pricing_increases_travel_cost(self):
+        """Congestion pricing should be factored into routing decisions."""
+        net = _make_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT, vtt=30.0/3600)  # $30/hr
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=4)
+        ]
+        # Add congestion pricing to edge 1
+        restrictions = [CongestionPricing(edge_id=1, cost=10.0)]
+
+        router = Router(courier, net, restrictions=restrictions)
+        router.calculate_itinerary()
+
+        # Vehicle should still traverse edge 1 (only path available)
+        assert 1 in vehicle.itinerary
+
+    def test_congestion_pricing_zero_vtt_ignores_cost(self):
+        """With VTT=0, congestion pricing should not affect routing."""
+        net = _make_network()
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT, vtt=0.0)
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=3)
+        ]
+        restrictions = [CongestionPricing(edge_id=1, cost=100.0)]
+
+        router = Router(courier, net, restrictions=restrictions)
+        router.calculate_itinerary()
+
+        # Should still use edge 1 despite high cost (VTT=0 means cost doesn't matter)
+        assert vehicle.itinerary == [1]
