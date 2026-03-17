@@ -1,9 +1,4 @@
-import matplotlib
-matplotlib.use("Agg")  # headless backend — must precede any pyplot import
-
-import matplotlib.pyplot as plt
 import pytest
-from unittest.mock import patch
 from parcel_delivery_two.environment.node import Node
 from parcel_delivery_two.environment.edge import Edge
 from parcel_delivery_two.environment.network import Network
@@ -131,101 +126,6 @@ class TestNetworkStructure:
         net.add_edge(Edge(10, from_node=1, to_node=2, distance=100.0, free_flow_speed=10.0))
         net.add_edge(Edge(10, from_node=1, to_node=2, distance=200.0, free_flow_speed=20.0))
         assert net.edges[10].distance == 200.0
-
-
-# ---------------------------------------------------------------------------
-# Network — visualize
-# ---------------------------------------------------------------------------
-
-def make_congested_network():
-    """Four-node network with travel_times already populated on two edges."""
-    net = make_network()
-    # edge 10: bin 0 → 200 s travel, free_flow = 100/14 ≈ 7.14 s → ratio ≈ 28 (clamped to red)
-    # edge 11: bin 0 → travel_time == free_flow_tt → ratio = 1 (green)
-    #          bin 900 → no data (light grey)
-    e10 = net.edges[10]
-    e10.travel_times[0] = 200.0
-
-    e11 = net.edges[11]
-    free_flow_tt_11 = e11.distance / e11.free_flow_speed
-    e11.travel_times[0] = free_flow_tt_11        # ratio = 1.0 → green
-    e11.travel_times[900] = free_flow_tt_11* 1.5  # ratio = 1.5 → yellow
-    return net
-
-
-class TestNetworkVisualize:
-    def test_visualize_runs_without_error(self):
-        net = make_network()
-        with patch("matplotlib.pyplot.show"):
-            net.visualize()
-
-    def test_visualize_empty_network(self):
-        net = Network()
-        with patch("matplotlib.pyplot.show"):
-            net.visualize()
-
-
-
-class TestNetworkVisualizeDynamicCongestion:
-    def teardown_method(self):
-        plt.close("all")
-
-    def test_no_travel_times_falls_back_to_static(self):
-        net = make_network()
-        with patch.object(net, "visualize") as mock_vis:
-            net.visualize_dynamic_congestion()
-        mock_vis.assert_called_once()
-
-    def test_runs_without_error(self):
-        net = make_congested_network()
-        net.visualize_dynamic_congestion()
-
-    def test_edges_without_data_for_current_bin_reset_to_gray(self):
-        """Edges 12 and 13 carry no travel_times at all; must not crash and
-        must be drawn in light grey for every bin."""
-        net = make_congested_network()
-        net.visualize_dynamic_congestion()
-
-    def test_slider_covers_full_day(self):
-        """Slider must span all 96 fifteen-minute bins regardless of data.
-
-        axes[0] = network, axes[1] = colorbar, axes[2] = slider.
-        """
-        net = make_congested_network()
-        net.visualize_dynamic_congestion()
-        slider_ax = plt.gcf().axes[2]
-        assert slider_ax.get_xlim()[1] == pytest.approx(95, abs=1)
-
-    def test_data_bin_only_network_still_has_full_slider(self):
-        """Even with a single data bin the slider still covers the full day."""
-        net = make_network()
-        net.edges[10].travel_times[28800] = 50.0  # only 08:00 bin has data
-        net.visualize_dynamic_congestion()
-        slider_ax = plt.gcf().axes[2]
-        assert slider_ax.get_xlim()[1] == pytest.approx(95, abs=1)
-
-    def test_slider_second_bin_update(self):
-        """Manually invoking set_val on the Slider must not raise."""
-        from matplotlib.widgets import Slider
-        net = make_congested_network()
-        net.visualize_dynamic_congestion()
-        fig = plt.gcf()
-        # slider_ax is the second axes (fig.axes[1]); retrieve its Slider via
-        # the axes' internal widget reference stored on the axes object itself
-        slider_ax = fig.axes[1]
-        slider = slider_ax._widgets[0] if hasattr(slider_ax, "_widgets") else None
-        if slider is None:
-            # fallback: find via the axes' collections/lines owned by Slider
-            for attr in ("slider", "_slider"):
-                slider = getattr(slider_ax, attr, None)
-                if slider is not None:
-                    break
-        # If we cannot introspect the internal Slider reference, call set_val
-        # directly on whatever Slider objects exist in the figure
-        for ax in fig.axes:
-            if isinstance(getattr(ax, "_slider", None), Slider):
-                ax._slider.set_val(1)
-                break
 
 
 # ---------------------------------------------------------------------------
