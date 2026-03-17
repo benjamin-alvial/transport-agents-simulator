@@ -4,6 +4,7 @@ from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.agents.courier_vehicle import CourierVehicle as Vehicle
 from parcel_delivery_two.market.courier import Courier
 from parcel_delivery_two.market.market import Market, ExcessDemandError, LocationMismatchError
+from parcel_delivery_two.market.depot import Depot
 
 
 DEPOT = 2
@@ -335,3 +336,190 @@ class TestMarketExceptions:
         """Custom exceptions should inherit from Exception."""
         assert issubclass(ExcessDemandError, Exception)
         assert issubclass(LocationMismatchError, Exception)
+
+
+# ---------------------------------------------------------------------------
+# Depot
+# ---------------------------------------------------------------------------
+
+class TestDepot:
+    def test_depot_creation(self):
+        """Depot should be created with depot_id and node_id."""
+        depot = Depot(depot_id="depot_1", node_id=5)
+        assert depot.depot_id == "depot_1"
+        assert depot.node_id == 5
+
+    def test_depot_different_nodes(self):
+        """Multiple depots can be at different nodes."""
+        depot_a = Depot(depot_id="depot_a", node_id=2)
+        depot_b = Depot(depot_id="depot_b", node_id=10)
+        assert depot_a.node_id != depot_b.node_id
+
+    def test_depot_same_node_different_ids(self):
+        """Multiple depots can share the same node with different IDs."""
+        depot_1 = Depot(depot_id="main_depot", node_id=5)
+        depot_2 = Depot(depot_id="secondary_depot", node_id=5)
+        assert depot_1.node_id == depot_2.node_id
+        assert depot_1.depot_id != depot_2.depot_id
+
+
+# ---------------------------------------------------------------------------
+# Multi-Depot Market Scenarios
+# ---------------------------------------------------------------------------
+
+class TestMultiDepotMarket:
+    """Tests for multiple depots with various courier/request distributions."""
+
+    def test_courier_at_depot_gets_requests_from_that_depot(self):
+        """Couriers at depot A should only get requests from depot A."""
+        depot_a = Depot(depot_id="depot_a", node_id=2)
+        depot_b = Depot(depot_id="depot_b", node_id=10)
+        
+        # Courier at depot A
+        courier_a = make_courier("c1", "car", capacity=100, n_vehicles=1, location=depot_a.node_id)
+        
+        # Requests from both depots
+        requests_from_a = make_requests(3, weight=10, origin=depot_a.node_id)
+        requests_from_b = make_requests(2, weight=10, origin=depot_b.node_id)
+        all_requests = requests_from_a + requests_from_b
+        
+        assigned, failed = Market().assign_delivery_requests(all_requests, [courier_a])
+        
+        # Only requests from depot A should be assigned
+        assert assigned == 3
+        assert failed == 2  # Requests from depot B fail
+        assert len(courier_a.assigned_delivery_requests) == 3
+        
+        # Verify all assigned requests are from depot A
+        for req in courier_a.assigned_delivery_requests:
+            assert req.origin == depot_a.node_id
+
+    def test_couriers_at_different_depots_get_own_requests(self):
+        """Couriers at different depots should get requests from their respective depots."""
+        depot_a = Depot(depot_id="depot_a", node_id=2)
+        depot_b = Depot(depot_id="depot_b", node_id=10)
+        
+        # Couriers at different depots
+        courier_a = make_courier("c1", "car", capacity=100, n_vehicles=1, location=depot_a.node_id)
+        courier_b = make_courier("c2", "bike", capacity=50, n_vehicles=1, location=depot_b.node_id)
+        
+        # Requests from both depots
+        requests_from_a = make_requests(2, weight=10, origin=depot_a.node_id)
+        requests_from_b = make_requests(2, weight=10, origin=depot_b.node_id)
+        all_requests = requests_from_a + requests_from_b
+        
+        assigned, failed = Market().assign_delivery_requests(all_requests, [courier_a, courier_b])
+        
+        assert assigned == 4
+        assert failed == 0
+        assert len(courier_a.assigned_delivery_requests) == 2
+        assert len(courier_b.assigned_delivery_requests) == 2
+
+    def test_depot_without_couriers_logs_warning(self, caplog):
+        """Requests from a depot with no couriers should log warning."""
+        depot_with_courier = Depot(depot_id="depot_with", node_id=2)
+        depot_without_courier = Depot(depot_id="depot_without", node_id=10)
+        
+        # Only courier at depot_with
+        courier = make_courier("c1", "car", capacity=100, n_vehicles=1, location=depot_with_courier.node_id)
+        
+        # Requests from depot without courier
+        requests = make_requests(3, weight=10, origin=depot_without_courier.node_id)
+        
+        with caplog.at_level(logging.WARNING):
+            assigned, failed = Market().assign_delivery_requests(requests, [courier])
+        
+        assert assigned == 0
+        assert failed == 3
+        assert f"No courier located at origin node {depot_without_courier.node_id}" in caplog.text
+
+    def test_mixed_assignment_with_depot_capacity(self):
+        """Requests distributed across depots respecting capacity."""
+        depot_a = Depot(depot_id="depot_a", node_id=2)
+        depot_b = Depot(depot_id="depot_b", node_id=10)
+        
+        # Couriers at depot A only
+        courier_a1 = make_courier("c1", "car", capacity=30, n_vehicles=1, location=depot_a.node_id)
+        courier_a2 = make_courier("c2", "car", capacity=30, n_vehicles=1, location=depot_a.node_id)
+        
+        # Many requests from depot A, none from depot B
+        requests_a = make_requests(8, weight=10, origin=depot_a.node_id)  # 80 total, but capacity is 60
+        requests_b = make_requests(3, weight=10, origin=depot_b.node_id)  # No couriers at B
+        all_requests = requests_a + requests_b
+        
+        assigned, failed = Market().assign_delivery_requests(all_requests, [courier_a1, courier_a2])
+        
+        assert assigned == 6  # 60 capacity at depot A
+        assert failed == 5  # 2 from A (excess capacity) + 3 from B (no couriers)
+
+    def test_round_robin_across_all_couriers(self):
+        """Round-robin assignment cycles through all couriers, respecting location constraints."""
+        depot_a = Depot(depot_id="depot_a", node_id=2)
+        depot_b = Depot(depot_id="depot_b", node_id=10)
+        
+        # Multiple couriers at depot A, one at depot B
+        courier_a1 = make_courier("c1", "car", capacity=100, n_vehicles=1, location=depot_a.node_id)
+        courier_a2 = make_courier("c2", "car", capacity=100, n_vehicles=1, location=depot_a.node_id)
+        courier_b = make_courier("c3", "car", capacity=100, n_vehicles=1, location=depot_b.node_id)
+        
+        # Interleaved requests from both depots
+        requests = [
+            DeliveryRequest("p1", weight=10, origin=depot_a.node_id, destination=1),  # Goes to a1
+            DeliveryRequest("p2", weight=10, origin=depot_b.node_id, destination=1),  # Goes to b
+            DeliveryRequest("p3", weight=10, origin=depot_a.node_id, destination=1),  # Goes to a1 (after b)
+            DeliveryRequest("p4", weight=10, origin=depot_b.node_id, destination=1),  # Goes to b (after a1)
+        ]
+        
+        Market().assign_delivery_requests(requests, [courier_a1, courier_a2, courier_b])
+        
+        # Round-robin continues across the full courier list:
+        # p1 -> a1 (first match at depot A)
+        # p2 -> b (first match at depot B, advances from a2)
+        # p3 -> a1 (back to a1, advances from b)
+        # p4 -> b (advances from a1)
+        assert len(courier_a1.assigned_delivery_requests) == 2  # p1, p3
+        assert len(courier_a2.assigned_delivery_requests) == 0  # Never matched
+        assert len(courier_b.assigned_delivery_requests) == 2   # p2, p4
+
+    def test_three_depots_varied_courier_coverage(self):
+        """Three depots: two with couriers, one without."""
+        depot_a = Depot(depot_id="depot_a", node_id=2)
+        depot_b = Depot(depot_id="depot_b", node_id=10)
+        depot_c = Depot(depot_id="depot_c", node_id=20)  # No couriers here
+        
+        # Couriers at depot A and B
+        courier_a = make_courier("c1", "car", capacity=50, n_vehicles=1, location=depot_a.node_id)
+        courier_b = make_courier("c2", "car", capacity=50, n_vehicles=1, location=depot_b.node_id)
+        
+        # Requests from all three depots
+        requests_a = make_requests(3, weight=10, origin=depot_a.node_id)
+        requests_b = make_requests(3, weight=10, origin=depot_b.node_id)
+        requests_c = make_requests(2, weight=10, origin=depot_c.node_id)
+        all_requests = requests_a + requests_b + requests_c
+        
+        assigned, failed = Market().assign_delivery_requests(all_requests, [courier_a, courier_b])
+        
+        assert assigned == 6  # 3 from A + 3 from B
+        assert failed == 2  # Both from C (no couriers)
+        assert len(courier_a.assigned_delivery_requests) == 3
+        assert len(courier_b.assigned_delivery_requests) == 3
+
+    def test_depot_node_used_in_full_example_pattern(self):
+        """Replicate full_example pattern using Depot class."""
+        main_depot = Depot(depot_id="depot_main", node_id=2)
+        
+        # Create couriers at the depot
+        cars = [Vehicle(vehicle_type="car", travel_time_factor=1, capacity=100) for _ in range(2)]
+        courier = Courier("courier1", vehicles=cars, location=main_depot.node_id)
+        
+        # Create requests from the depot
+        requests = [
+            DeliveryRequest(f"parcel_{i}", weight=10, origin=main_depot.node_id, destination=3)
+            for i in range(15)
+        ]
+        
+        assigned, failed = Market().assign_delivery_requests(requests, [courier])
+        
+        assert assigned == 15
+        assert failed == 0
+        assert len(courier.assigned_delivery_requests) == 15

@@ -1,5 +1,5 @@
 from parcel_delivery_two import MetricsCollector
-from parcel_delivery_two.market import DeliveryRequest, Courier, Market
+from parcel_delivery_two.market import DeliveryRequest, Courier, Market, Depot
 from parcel_delivery_two.environment import Network, matsim_io
 from parcel_delivery_two.restrictions import ProhibitEdge, CongestionPricing
 from parcel_delivery_two.routing import Router
@@ -12,28 +12,31 @@ if __name__ == "__main__":
 
     metrics = MetricsCollector()
 
+    # ================= DEPOT =================
+    # Create a depot at node 2
+    main_depot = Depot(depot_id="depot_main", node_id=2)
+    
     # ================= MARKET =================
     # 90 requests, each of contents of size 10.
-    single_depot_node = 2
     single_destination_node = 3
-    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=single_depot_node, destination=single_destination_node) for i in range(90)]
+    delivery_requests = [DeliveryRequest("parcel_"+str(i), weight=10, origin=main_depot.node_id, destination=single_destination_node) for i in range(90)]
     # 2 impossible requests that will not be assigned. Should trigger console warnings.
-    delivery_requests.append(DeliveryRequest("parcel_impossible_by_location", weight=10, origin=10, destination=single_depot_node))
-    delivery_requests.append(DeliveryRequest("parcel_impossible_by_capacity", weight=100000000, origin=single_depot_node, destination=single_depot_node))
+    delivery_requests.append(DeliveryRequest("parcel_impossible_by_location", weight=10, origin=10, destination=single_destination_node))
+    delivery_requests.append(DeliveryRequest("parcel_impossible_by_capacity", weight=100000000, origin=main_depot.node_id, destination=single_destination_node))
 
-    # Two couriers:
+    # Four couriers, all starting at the main depot:
     # First with 3 cars of capacity 100 each (should get assigned 30 requests of size 10 each)
     cars = [CourierVehicle(vehicle_type="car", travel_time_factor=1, capacity=100) for _ in range(3)]
-    courier_1 = Courier("courier1", vehicles=cars, location=single_depot_node)
+    courier_1 = Courier("courier1", vehicles=cars, location=main_depot.node_id)
     # Second with 5 bikes of capacity 20 each (should get assigned 10 requests of size 10 each)
     bikes = [CourierVehicle(vehicle_type="bike", travel_time_factor=0.5, capacity=20) for _ in range(5)]
-    courier_2 = Courier("courier2", vehicles=bikes, location=single_depot_node)
+    courier_2 = Courier("courier2", vehicles=bikes, location=main_depot.node_id)
     # Third with 2 trucks of capacity 150 (should get assigned 30 requests of size 10 each)
     trucks = [CourierVehicle(vehicle_type="truck", travel_time_factor=1.5, capacity=150) for _ in range(2)]
-    courier_3 = Courier("courier3", vehicles=trucks, location=single_depot_node)
+    courier_3 = Courier("courier3", vehicles=trucks, location=main_depot.node_id)
     # Fourth with 1 big truck of capacity 200 (should get assigned 20 requests of size 10 each)
     bigtrucks = [CourierVehicle(vehicle_type="bigtruck", travel_time_factor=2.0, capacity=200) for _ in range(1)]
-    courier_4 = Courier("courier4", vehicles=bigtrucks, location=single_depot_node)
+    courier_4 = Courier("courier4", vehicles=bigtrucks, location=main_depot.node_id)
     couriers = [courier_1, courier_2, courier_3, courier_4]
 
     # Assign the delivery requests to the couriers (couriers will update their state)
