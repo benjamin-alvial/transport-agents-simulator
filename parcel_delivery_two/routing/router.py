@@ -16,18 +16,19 @@ _CacheKey = Tuple[str, int]                              # (vehicle_type, source
 class Router:
     """Solves a VRP for a courier's fleet and writes itineraries to each vehicle.
 
+    Both strategies use time-dependent routing based on historic travel times stored
+    in 15-minute bins. The appropriate bin is selected based on ``departure_time``.
+
     The DEFAULT strategy uses a greedy capacity-fill for vehicle assignment and a
     nearest-neighbour heuristic for stop ordering. All routes depart from the
     courier's ``location`` (depot node). Shortest paths are computed via Dijkstra
-    on free-flow travel times, with adjacency and path caches keyed by vehicle type
+    on historic travel times, with adjacency and path caches keyed by vehicle type
     so that ``ProhibitEdge`` restrictions are respected per vehicle.
 
     The ORTOOLS strategy uses Google OR-Tools to solve a Vehicle Routing Problem
     with time-dependent travel times. It supports heterogeneous fleets with
-    vehicle-type-specific edge restrictions and capacities. This strategy requires
-    ``departure_time`` to determine which 15-minute traffic bin to use for travel
-    times. Solve time is approximately 30 minutes per courier but can run longer
-    for better solutions.
+    vehicle-type-specific edge restrictions and capacities. Solve time is
+    approximately 30 minutes per courier but can run longer for better solutions.
 
     Time-window restrictions are evaluated at departure_time to determine which
     edges are available during route planning.
@@ -40,12 +41,14 @@ class Router:
         network: The road network to route over.
         restrictions: Edge restrictions applied during routing (ProhibitEdge or
             CongestionPricing).
+        departure_time: Time in seconds when vehicles depart. Required to select
+            the appropriate 15-minute traffic bin for historic travel times.
         strategy: Routing strategy. ``"DEFAULT"`` uses greedy assignment and
             nearest-neighbour heuristic. ``"ORTOOLS"`` uses Google OR-Tools VRP
             solver with time-dependent routing.
-        departure_time: Time in seconds when vehicles depart. Used to evaluate
-            time-window restrictions and select traffic bins. Required for
-            ``"ORTOOLS"`` strategy, optional for ``"DEFAULT"``.
+
+    Raises:
+        ValueError: If ``departure_time`` is None.
     """
 
     def __init__(
@@ -53,9 +56,12 @@ class Router:
         courier: Courier,
         network: Network,
         restrictions: List[Union[ProhibitEdge, CongestionPricing]],
+        departure_time: float,
         strategy: str = "DEFAULT",
-        departure_time: Optional[float] = None,
     ):
+        if departure_time is None:
+            raise ValueError("departure_time is required for time-dependent routing")
+
         self.courier = courier
         self.network = network
         self.restrictions = restrictions
@@ -120,14 +126,18 @@ class Router:
     def _get_adjacency(self, vehicle_type: str) -> _Adj:
         """Return (cached) adjacency for *vehicle_type*, filtered by restrictions.
 
+        Travel times are determined by looking up historic travel times for the
+        15-minute bin corresponding to departure_time. If no historic data is
+        available for a bin, falls back to free-flow travel time.
+
         Args:
             vehicle_type: Vehicle type string used to filter prohibited edges
                 and congestion pricing.
 
         Returns:
             Neighbor list mapping each node to reachable (to_node, edge_id, cost) tuples.
-            Costs include travel time plus congestion pricing (converted to time using
-            the courier's VTT).
+            Costs include historic travel time plus congestion pricing (converted to
+            time using the courier's VTT).
         """
         if vehicle_type not in self._adj:
             # Separate prohibition and congestion pricing restrictions
@@ -149,12 +159,18 @@ class Router:
             adj: _Adj = {n: [] for n in self.network.nodes}
             vtt = self.courier.vtt
 
+            # Calculate the 15-minute time bin for historic travel times
+            time_bin = (int(self.departure_time) // 900) * 900
+
             for edge in self.network.edges.values():
                 if edge.edge_id in prohibited:
                     continue
 
-                # Base travel time cost
-                travel_time = edge.distance / edge.free_flow_speed
+                # Use historic travel time if available, otherwise fall back to free-flow
+                if time_bin in edge.travel_times:
+                    travel_time = edge.travel_times[time_bin]
+                else:
+                    travel_time = edge.distance / edge.free_flow_speed
 
                 # Add congestion pricing cost (converted to time using VTT)
                 if edge.edge_id in congestion_costs and vtt > 0:

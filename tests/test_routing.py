@@ -30,7 +30,7 @@ def _make_network() -> Network:
 
 
 def _make_router(courier: Courier, network: Network) -> Router:
-    return Router(courier, network, restrictions=[], strategy="DEFAULT")
+    return Router(courier, network, restrictions=[], departure_time=0.0, strategy="DEFAULT")
 
 
 # ---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ class TestRouterRestrictions:
         ]
         restrictions = [ProhibitEdge(edge_id=1)]
 
-        router = Router(courier, net, restrictions=restrictions)
+        router = Router(courier, net, restrictions=restrictions, departure_time=0.0)
         router.calculate_itinerary()
 
         # Should not be able to reach node 4, so itinerary should be empty or partial
@@ -206,7 +206,7 @@ class TestRouterRestrictions:
         ]
         restrictions = [ProhibitEdge(edge_id=1, vehicle_type="car")]
 
-        router = Router(courier, net, restrictions=restrictions)
+        router = Router(courier, net, restrictions=restrictions, departure_time=0.0)
         router.calculate_itinerary()
 
         # Car should not have edge 1, bike should
@@ -224,7 +224,7 @@ class TestRouterErrors:
         courier = Courier("c1", [Vehicle("car", 1.0, 100)], location=DEPOT)
 
         with pytest.raises(ValueError, match="Unknown routing strategy"):
-            Router(courier, net, [], strategy="UNKNOWN").calculate_itinerary()
+            Router(courier, net, [], departure_time=0.0, strategy="UNKNOWN").calculate_itinerary()
 
     def test_depot_not_in_network_raises(self):
         net = Network()
@@ -232,7 +232,74 @@ class TestRouterErrors:
         courier = Courier("c1", [Vehicle("car", 1.0, 100)], location=2)
 
         with pytest.raises(ValueError, match="Depot node 2 not found"):
-            Router(courier, net, []).calculate_itinerary()
+            Router(courier, net, [], departure_time=0.0).calculate_itinerary()
+
+    def test_missing_departure_time_raises(self):
+        """Router should require departure_time for time-dependent routing."""
+        net = _make_network()
+        courier = Courier("c1", [Vehicle("car", 1.0, 100)], location=DEPOT)
+
+        with pytest.raises(ValueError, match="departure_time is required"):
+            Router(courier, net, [], departure_time=None)
+
+
+class TestRouterHistoricTravelTimes:
+    """Test that Router uses historic travel times from 15-minute bins."""
+
+    def test_uses_historic_travel_time_when_available(self):
+        """Router should use historic travel time from the appropriate 15-min bin."""
+        net = _make_network()
+        # Set historic travel time for bin 0 (0-15 minutes) to be 5x slower than free-flow
+        net.edges[1].travel_times[0] = 50.0  # Instead of 10.0 (100m / 10m/s)
+
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT)
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=3)
+        ]
+
+        # Departure at time 0 should use bin 0
+        router = Router(courier, net, [], departure_time=0.0)
+        router.calculate_itinerary()
+
+        # Should still get the route, but with historic travel time
+        assert vehicle.itinerary == [1]
+
+    def test_falls_back_to_free_flow_when_no_historic_data(self):
+        """Router should use free-flow travel time when no historic data exists."""
+        net = _make_network()
+        # No historic travel times set
+
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT)
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=3)
+        ]
+
+        router = Router(courier, net, [], departure_time=0.0)
+        router.calculate_itinerary()
+
+        # Should use free-flow travel time
+        assert vehicle.itinerary == [1]
+
+    def test_selects_correct_time_bin(self):
+        """Router should select the correct 15-minute bin based on departure_time."""
+        net = _make_network()
+        # Set different historic travel times for different bins
+        net.edges[1].travel_times[0] = 50.0      # Bin 0: 0-15 minutes
+        net.edges[1].travel_times[900] = 20.0    # Bin 1: 15-30 minutes (900s)
+
+        vehicle = Vehicle("car", 1.0, 100)
+        courier = Courier("c1", [vehicle], location=DEPOT)
+        courier.assigned_delivery_requests = [
+            DeliveryRequest("p1", 10, origin=DEPOT, destination=3)
+        ]
+
+        # Departure at time 1000 should use bin 900
+        router = Router(courier, net, [], departure_time=1000.0)
+        router.calculate_itinerary()
+
+        assert vehicle.itinerary == [1]
 
 
 # ---------------------------------------------------------------------------
@@ -285,7 +352,7 @@ class TestRouterCongestionPricing:
         # Add congestion pricing to edge 1
         restrictions = [CongestionPricing(edge_id=1, cost=10.0)]
 
-        router = Router(courier, net, restrictions=restrictions)
+        router = Router(courier, net, restrictions=restrictions, departure_time=0.0)
         router.calculate_itinerary()
 
         # Vehicle should still traverse edge 1 (only path available)
@@ -301,7 +368,7 @@ class TestRouterCongestionPricing:
         ]
         restrictions = [CongestionPricing(edge_id=1, cost=100.0)]
 
-        router = Router(courier, net, restrictions=restrictions)
+        router = Router(courier, net, restrictions=restrictions, departure_time=0.0)
         router.calculate_itinerary()
 
         # Should still use edge 1 despite high cost (VTT=0 means cost doesn't matter)
