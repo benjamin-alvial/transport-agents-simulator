@@ -6,6 +6,7 @@ from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.environment.network import Network
 from parcel_delivery_two.restrictions.prohibit_edge import ProhibitEdge
 from parcel_delivery_two.restrictions.congestion_pricing import CongestionPricing
+from parcel_delivery_two.routing.ortools_strategy import ORToolsRouterStrategy
 
 # Type aliases for readability
 _Adj = Dict[int, List[Tuple[int, int, float]]]          # node -> [(to, edge_id, cost)]
@@ -21,6 +22,13 @@ class Router:
     on free-flow travel times, with adjacency and path caches keyed by vehicle type
     so that ``ProhibitEdge`` restrictions are respected per vehicle.
 
+    The ORTOOLS strategy uses Google OR-Tools to solve a Vehicle Routing Problem
+    with time-dependent travel times. It supports heterogeneous fleets with
+    vehicle-type-specific edge restrictions and capacities. This strategy requires
+    ``departure_time`` to determine which 15-minute traffic bin to use for travel
+    times. Solve time is approximately 30 minutes per courier but can run longer
+    for better solutions.
+
     Time-window restrictions are evaluated at departure_time to determine which
     edges are available during route planning.
 
@@ -32,9 +40,12 @@ class Router:
         network: The road network to route over.
         restrictions: Edge restrictions applied during routing (ProhibitEdge or
             CongestionPricing).
-        strategy: Routing strategy. Only ``"DEFAULT"`` is currently supported.
+        strategy: Routing strategy. ``"DEFAULT"`` uses greedy assignment and
+            nearest-neighbour heuristic. ``"ORTOOLS"`` uses Google OR-Tools VRP
+            solver with time-dependent routing.
         departure_time: Time in seconds when vehicles depart. Used to evaluate
-            time-window restrictions. If None, time-window restrictions are ignored.
+            time-window restrictions and select traffic bins. Required for
+            ``"ORTOOLS"`` strategy, optional for ``"DEFAULT"``.
     """
 
     def __init__(
@@ -57,19 +68,38 @@ class Router:
     def calculate_itinerary(self) -> None:
         """Solve the VRP and write an ``itinerary`` (ordered edge-ID list) to each vehicle.
 
-        For each vehicle in the courier's fleet the method:
+        For the DEFAULT strategy:
 
         1. Assigns delivery requests greedily by capacity.
         2. Orders stops using a nearest-neighbour heuristic from the depot.
         3. Expands each hop into the shortest-path sequence of edge IDs,
            respecting any ``ProhibitEdge`` restrictions for the vehicle's type.
 
+        For the ORTOOLS strategy, delegates to ORToolsRouterStrategy which:
+
+        1. Builds time-dependent distance matrices for each vehicle type.
+        2. Solves the VRP using Google OR-Tools with vehicle-specific transit callbacks.
+        3. Assigns visits to vehicles and expands to edge itineraries.
+
         Raises:
-            ValueError: If ``strategy`` is not ``"DEFAULT"``.
+            ValueError: If ``strategy`` is not ``"DEFAULT"`` or ``"ORTOOLS"``.
             ValueError: If the depot node is not present in the network.
+            RuntimeError: If OR-Tools cannot find a feasible solution (ORTOOLS only).
         """
+        if self.strategy == "ORTOOLS":
+            # Delegate to OR-Tools strategy
+            ortools_strategy = ORToolsRouterStrategy(
+                self.courier,
+                self.network,
+                self.restrictions,
+                self.departure_time,
+            )
+            ortools_strategy.calculate_itinerary()
+            return
+
         if self.strategy != "DEFAULT":
             raise ValueError(f"Unknown routing strategy: {self.strategy!r}")
+
         depot = self.courier.location
         if depot not in self.network.nodes:
             raise ValueError(f"Depot node {depot} not found in network")
