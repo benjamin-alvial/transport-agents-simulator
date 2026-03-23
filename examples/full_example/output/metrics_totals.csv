@@ -1,0 +1,14 @@
+metric,value
+total_vehicles,12
+total_couriers,4
+total_distance_m,158000.0
+total_travel_time_s,49284.76025917927
+total_monetary_cost_usd,5.0
+average_distance_per_vehicle_m,13166.666666666666
+average_travel_time_per_vehicle_s,4107.063354931605
+delivery_requests_total,92
+delivery_requests_assigned,90
+delivery_requests_delivered,90
+delivery_assignment_rate,0.9782608695652174
+delivery_completion_rate,1.0
+average_delivery_time_s,5520.075833933281

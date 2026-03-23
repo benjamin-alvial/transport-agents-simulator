@@ -1,0 +1,15 @@
+# Core dependencies for transport-agents-simulator
+# Install with: pip install -r requirements.txt
+
+# Routing and optimization
+ortools>=9.8
+
+# Data manipulation and analysis
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Visualization
+matplotlib>=3.7.0
+
+# Testing
+pytest>=8.0.0
