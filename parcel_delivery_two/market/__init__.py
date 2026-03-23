@@ -1,3 +1,3 @@
 from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.market.courier import Courier
-from parcel_delivery_two.market.market import Market, ExcessDemandError, LocationMismatchError
+from parcel_delivery_two.market.market import Market

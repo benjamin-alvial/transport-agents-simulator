@@ -6,14 +6,6 @@ from parcel_delivery_two.market.courier import Courier
 logger = logging.getLogger(__name__)
 
 
-class ExcessDemandError(Exception):
-    """Raised when a delivery request cannot be assigned due to capacity constraints."""
-
-
-class LocationMismatchError(Exception):
-    """Raised when no courier is located at the request's origin."""
-
-
 class Market:
     """Assigns delivery requests to couriers using a configurable strategy."""
 

@@ -3,7 +3,7 @@ import logging
 from parcel_delivery_two.market.delivery_request import DeliveryRequest
 from parcel_delivery_two.agents.courier_vehicle import CourierVehicle as Vehicle
 from parcel_delivery_two.market.courier import Courier
-from parcel_delivery_two.market.market import Market, ExcessDemandError, LocationMismatchError
+from parcel_delivery_two.market.market import Market
 
 
 DEPOT = 2
@@ -315,23 +315,3 @@ class TestMarketLogging:
         assert "No courier at origin" in caplog.text
         assert "has capacity" in caplog.text
 
-
-# ---------------------------------------------------------------------------
-# Market — exception classes
-# ---------------------------------------------------------------------------
-
-class TestMarketExceptions:
-    def test_excess_demand_error_exists(self):
-        """ExcessDemandError exception class should exist."""
-        assert ExcessDemandError is not None
-        # These exceptions are defined but not raised in current implementation
-        # (warnings are logged instead)
-
-    def test_location_mismatch_error_exists(self):
-        """LocationMismatchError exception class should exist."""
-        assert LocationMismatchError is not None
-
-    def test_exceptions_inherit_from_exception(self):
-        """Custom exceptions should inherit from Exception."""
-        assert issubclass(ExcessDemandError, Exception)
-        assert issubclass(LocationMismatchError, Exception)
