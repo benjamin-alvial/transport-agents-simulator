@@ -1,0 +1,100 @@
+28800.0,8h00m00.0s,courier1_car_0,Starting journey with 1130 edges
+28800.0,8h00m00.0s,courier1_car_1,Starting journey with 832 edges
+28800.0,8h00m00.0s,courier2_bike_0,Starting journey with 128 edges
+28800.0,8h00m00.0s,courier2_bike_1,Starting journey with 143 edges
+28800.0,8h00m00.0s,courier2_bike_2,Starting journey with 160 edges
+28800.0,8h00m00.0s,courier3_truck_0,Starting journey with 1983 edges
+28800.0,8h00m00.0s,courier3_truck_1,Starting journey with 2286 edges
+28800.0,8h00m00.0s,courier4_car_0,Starting journey with 1371 edges
+28800.0,8h00m00.0s,courier4_bike_1,Starting journey with 29 edges
+28800.0,8h00m00.0s,courier5_truck_0,Starting journey with 2337 edges
+28800.0,8h00m00.0s,courier5_car_1,Starting journey with 1076 edges
+28800.0,8h00m00.0s,courier5_car_2,Starting journey with 1051 edges
+28800.0,8h00m00.0s,bus_kelheim,Starting journey with 5 edges
+29052.135589152866,8h04m12.1s,courier4_bike_1,Journey complete
+29052.135589152866,8h04m12.1s,courier4_bike_1,Delivered parcel 'parcel_39' to node 121794952
+29054.126349689184,8h04m14.1s,bus_kelheim,Journey complete
+29483.69582433405,8h11m23.7s,courier3_truck_0,Delivered parcel 'parcel_11' to node 253260787
+29512.716013829995,8h11m52.7s,courier2_bike_0,Journey complete
+29512.716013829995,8h11m52.7s,courier2_bike_0,Delivered parcel 'parcel_1' to node 9126912319
+29735.687851052375,8h15m35.7s,courier2_bike_2,Journey complete
+29735.687851052375,8h15m35.7s,courier2_bike_2,Delivered parcel 'parcel_62' to node 21676279
+29777.946900914583,8h16m17.9s,courier4_car_0,Delivered parcel 'parcel_34' to node 4339664490
+29779.785171501582,8h16m19.8s,courier2_bike_1,Journey complete
+29779.785171501582,8h16m19.8s,courier2_bike_1,Delivered parcel 'parcel_44' to node 8671846905
+29831.727661787056,8h17m11.7s,courier3_truck_1,Delivered parcel 'parcel_38' to node 1501721452
+30154.696134309266,8h22m34.7s,courier3_truck_0,Delivered parcel 'parcel_30' to node 281192141
+30258.18028779922,8h24m18.2s,courier1_car_1,Delivered parcel 'parcel_80' to node 224483
+30386.713045178632,8h26m26.7s,courier1_car_0,Delivered parcel 'parcel_32' to node 1146099465
+30570.76097134453,8h29m30.8s,courier1_car_1,Delivered parcel 'parcel_85' to node 310810591
+30769.6901297855,8h32m49.7s,courier5_car_1,Delivered parcel 'parcel_55' to node 2006241482
+30958.419093183194,8h35m58.4s,courier5_truck_0,Delivered parcel 'parcel_35' to node 412129790
+30964.83351803442,8h36m04.8s,courier5_car_2,Delivered parcel 'parcel_68' to node 251368320
+30997.431093295672,8h36m37.4s,courier3_truck_0,Delivered parcel 'parcel_17' to node 325841713
+31148.772905628313,8h39m08.8s,courier1_car_0,Delivered parcel 'parcel_10' to node 259964540
+31258.58501733942,8h40m58.6s,courier3_truck_1,Delivered parcel 'parcel_49' to node 32905445
+31414.52601643973,8h43m34.5s,courier1_car_1,Delivered parcel 'parcel_61' to node 21761159
+31423.13365945515,8h43m43.1s,courier4_car_0,Delivered parcel 'parcel_8' to node 1631164948
+31481.919093183194,8h44m41.9s,courier5_truck_0,Delivered parcel 'parcel_26' to node 440892302
+32349.45914408792,8h59m09.5s,courier3_truck_0,Delivered parcel 'parcel_3' to node 270420704
+32494.884984264612,9h01m34.9s,courier5_truck_0,Delivered parcel 'parcel_9' to node 4788909351
+32775.275979664846,9h06m15.3s,courier3_truck_1,Delivered parcel 'parcel_40' to node 313667359
+32864.08847489221,9h07m44.1s,courier5_car_2,Delivered parcel 'parcel_84' to node 372572749
+32898.1459838746,9h08m18.1s,courier5_car_1,Delivered parcel 'parcel_65' to node 8083642
+33419.552589064304,9h16m59.6s,courier5_truck_0,Delivered parcel 'parcel_42' to node 2957143670
+33536.415490168656,9h18m56.4s,courier4_car_0,Delivered parcel 'parcel_20' to node 26968716
+33960.13047853577,9h26m00.1s,courier3_truck_0,Delivered parcel 'parcel_33' to node 506912216
+34932.79049576913,9h42m12.8s,courier5_truck_0,Delivered parcel 'parcel_91' to node 1725310412
+34959.17447701961,9h42m39.2s,courier5_car_1,Delivered parcel 'parcel_45' to node 664485943
+35632.63020412377,9h53m52.6s,courier5_car_2,Delivered parcel 'parcel_93' to node 3127764352
+35770.3949214256,9h56m10.4s,courier4_car_0,Delivered parcel 'parcel_16' to node 3302684252
+36158.533336983586,10h02m38.5s,courier3_truck_0,Delivered parcel 'parcel_22' to node 1113629748
+36263.1374247588,10h04m23.1s,courier3_truck_1,Delivered parcel 'parcel_36' to node 5565170571
+36956.96262652867,10h15m57.0s,courier1_car_1,Delivered parcel 'parcel_64' to node 2704740035
+37449.16519872184,10h24m09.2s,courier5_car_2,Delivered parcel 'parcel_77' to node 8488106557
+37583.675010406,10h26m23.7s,courier5_truck_0,Delivered parcel 'parcel_31' to node 1074157385
+38035.79365276041,10h33m55.8s,courier5_car_1,Delivered parcel 'parcel_59' to node 2227884382
+38100.31954524317,10h35m00.3s,courier4_car_0,Delivered parcel 'parcel_41' to node 29411681
+38347.84347500933,10h39m07.8s,courier1_car_1,Delivered parcel 'parcel_56' to node 2709749113
+39595.44262566253,10h59m55.4s,courier3_truck_0,Delivered parcel 'parcel_19' to node 469732917
+39767.36001853208,11h02m47.4s,courier3_truck_1,Delivered parcel 'parcel_52' to node 4811184228
+40810.86697033086,11h20m10.9s,courier1_car_1,Delivered parcel 'parcel_70' to node 9190159961
+41249.7284315026,11h27m29.7s,courier5_truck_0,Delivered parcel 'parcel_2' to node 281297077
+41329.713853168796,11h28m49.7s,courier1_car_0,Delivered parcel 'parcel_43' to node 278944179
+41501.81315380688,11h31m41.8s,courier4_car_0,Delivered parcel 'parcel_37' to node 105866516
+41552.75376838291,11h32m32.8s,courier5_car_1,Delivered parcel 'parcel_50' to node 7830474056
+42050.06598126867,11h40m50.1s,courier5_car_2,Delivered parcel 'parcel_71' to node 4010911607
+44360.529993860604,12h19m20.5s,courier3_truck_1,Delivered parcel 'parcel_51' to node 1438207063
+44497.83750977569,12h21m37.8s,courier1_car_0,Delivered parcel 'parcel_24' to node 27292186
+44909.33131454879,12h28m29.3s,courier5_truck_0,Delivered parcel 'parcel_21' to node 5924573348
+45205.2534372269,12h33m25.3s,courier5_car_1,Journey complete
+45205.2534372269,12h33m25.3s,courier5_car_1,Delivered parcel 'parcel_63' to node 157259327
+45478.06695312586,12h37m58.1s,courier4_car_0,Journey complete
+45478.06695312586,12h37m58.1s,courier4_car_0,Delivered parcel 'parcel_14' to node 1084259568
+46095.10353295687,12h48m15.1s,courier1_car_1,Journey complete
+46095.10353295687,12h48m15.1s,courier1_car_1,Delivered parcel 'parcel_66' to node 735096504
+46988.7862951051,13h03m08.8s,courier3_truck_0,Delivered parcel 'parcel_5' to node 539786241
+48068.659215531065,13h21m08.7s,courier5_car_2,Journey complete
+48068.659215531065,13h21m08.7s,courier5_car_2,Delivered parcel 'parcel_94' to node 268026716
+48271.95627790126,13h24m32.0s,courier1_car_0,Delivered parcel 'parcel_0' to node 6895707902
+49275.41457525491,13h41m15.4s,courier5_truck_0,Delivered parcel 'parcel_6' to node 30009372
+50280.04032478888,13h58m00.0s,courier3_truck_1,Delivered parcel 'parcel_48' to node 17475135
+51058.8073448303,14h10m58.8s,courier3_truck_0,Delivered parcel 'parcel_13' to node 2271992215
+51675.84186619195,14h21m15.8s,courier1_car_0,Delivered parcel 'parcel_73' to node 5198008936
+55584.971259478334,15h26m25.0s,courier5_truck_0,Delivered parcel 'parcel_4' to node 1820512693
+56367.18094231075,15h39m27.2s,courier3_truck_1,Delivered parcel 'parcel_53' to node 6127085778
+56870.15597006422,15h47m50.2s,courier3_truck_0,Delivered parcel 'parcel_15' to node 5067678723
+57147.61212236999,15h52m27.6s,courier1_car_0,Journey complete
+57147.61212236999,15h52m27.6s,courier1_car_0,Delivered parcel 'parcel_29' to node 1957991740
+60726.619420434195,16h52m06.6s,courier5_truck_0,Delivered parcel 'parcel_12' to node 6893121451
+62435.01584331195,17h20m35.0s,courier3_truck_0,Delivered parcel 'parcel_27' to node 6769303990
+63781.690462563034,17h43m01.7s,courier3_truck_1,Delivered parcel 'parcel_57' to node 2408857585
+66378.80116105259,18h26m18.8s,courier5_truck_0,Delivered parcel 'parcel_23' to node 8933797426
+68834.0417448169,19h07m14.0s,courier3_truck_0,Delivered parcel 'parcel_25' to node 3343896939
+72395.7270562286,20h06m35.7s,courier3_truck_1,Delivered parcel 'parcel_47' to node 706900003
+73111.20159706104,20h18m31.2s,courier5_truck_0,Delivered parcel 'parcel_18' to node 59773081
+76408.86249805092,21h13m28.9s,courier3_truck_0,Journey complete
+76408.86249805092,21h13m28.9s,courier3_truck_0,Delivered parcel 'parcel_7' to node 148333779
+82376.29414014758,22h52m56.3s,courier5_truck_0,Journey complete
+82376.29414014758,22h52m56.3s,courier5_truck_0,Delivered parcel 'parcel_28' to node 3400856685
+82391.40951657869,22h53m11.4s,courier3_truck_1,Delivered parcel 'parcel_46' to node 1898286458
