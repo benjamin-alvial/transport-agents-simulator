@@ -1,6 +1,6 @@
 from parcel_delivery_two import MetricsCollector
 from parcel_delivery_two.market import DeliveryRequest, Courier, Market
-from parcel_delivery_two.environment import Network, matsim_io
+from parcel_delivery_two.environment import matsim_io
 from parcel_delivery_two.restrictions import ProhibitEdge, CongestionPricing
 from parcel_delivery_two.routing import Router
 from parcel_delivery_two.agents import Bus, CourierVehicle
