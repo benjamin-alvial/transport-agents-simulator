@@ -97,47 +97,6 @@ sim.register_courier(courier)
 sim.run(until=86400)  # Run for 24 hours
 ```
 
-## Key Features
-
-### Market Assignment
-- Round-robin assignment of delivery requests to couriers
-- Capacity constraints per vehicle
-- Location matching (couriers only take requests from their depot)
-
-### Routing
-Two VRP strategies available:
-
-**DEFAULT Strategy** (fast, heuristic):
-- Greedy capacity-fill assignment + nearest-neighbour stop ordering
-- Dijkstra shortest-path routing
-- Good for quick results and testing
-
-**ORTOOLS Strategy** (optimized, slower):
-- Google OR-Tools VRP solver for heterogeneous fleets
-- Better solutions for large-scale problems
-
-Both strategies use:
-- **Time-dependent historic travel times** from 15-minute bins (requires departure_time)
-- Vehicle-type specific restrictions (e.g., trucks can't use certain roads)
-- Time-windowed restrictions (e.g., no trucks in city center 8-10am)
-- Congestion pricing converted to time costs using Value of Travel Time (VTT)
-
-### Simulation
-- Discrete-event simulation with event queue
-- Historic travel times loaded from MATSim events
-- Per-vehicle tracking of distance, time, and costs
-
-### Metrics & Analysis
-- **Runtime metrics**: assignment rate, completion rate, average delivery time
-- **Post-simulation business metrics**: fuel consumption, CO2 emissions, operational costs
-- **Clean mode share**: percentage of deliveries by zero-emission vehicles
-
-### Visualization
-- Static network visualization (small networks)
-- Dynamic congestion heatmaps with time sliders
-- Vehicle movement animation with route tracing
-- Sigma.js export for large network visualization
-
 ## Project Structure
 
 ```
@@ -145,7 +104,7 @@ transport-agents-simulator/
 ├── examples/
 │   ├── full_example/           # Complete usage demo
 │   ├── square_grid_example/    # 21x21 grid network
-│   └── real_city_example/      # Real-world city (stub)
+│   └── real_city_example/      # Real-world city
 ├── parcel_delivery_two/        # Main package
 │   ├── agents/                 # TransportVehicle, CourierVehicle, Bus
 │   ├── market/                 # DeliveryRequest, Courier, Market
@@ -164,18 +123,14 @@ transport-agents-simulator/
 ## Examples
 
 ### Full Example
-A simple toy network of 9 nodes
-
-Complete demonstration with all features: congestion pricing, multiple couriers, business metrics.
-The network is 
-
+A simple toy network of 9 nodes:
 ```bash
 cd examples/full_example
 python full_example.py
 ```
 
 ### Square Grid Example
-Simple 21x21 grid network example:
+A simple 21x21 grid network example:
 
 ```bash
 cd examples/square_grid_example
@@ -183,31 +138,87 @@ python square_grid_example.py
 ```
 
 ### Real City Example
-Simple 21x21 grid network example:
+Real-world network example with the city Kelheim (network and events files must be obtained previously through a MATSim simulation):
 
 ```bash
-cd examples/square_grid_example
-python square_grid_example.py
+cd examples/real_city_example
+python real_city_example.py
 ```
 
-## Configuration
+## Features & Configuration
 
-### Vehicle Types
-Configure vehicle characteristics for business metrics:
+### Market Assignment
+
+The Market assigns delivery requests to couriers using round-robin assignment. It respects each courier's capacity constraints and only assigns requests originating from the courier's depot location.
+
+```python
+from parcel_delivery_two.market import DeliveryRequest, Courier, Market
+
+# Create delivery requests
+requests = [DeliveryRequest(f"parcel_{i}", weight=10, origin=2, destination=3) 
+            for i in range(10)]
+
+# Create courier with vehicles at depot location 2
+courier = Courier(
+    courier_id="courier1",
+    vehicles=[CourierVehicle("car", 1.0, capacity=100)],
+    location=2
+)
+
+# Assign requests
+market = Market()
+assigned, failed = market.assign_delivery_requests(requests, [courier])
+```
+
+### Routing
+
+Two VRP strategies available:
+
+**DEFAULT Strategy** (fast, heuristic):
+- Greedy capacity-fill + nearest-neighbour stop ordering
+- Dijkstra shortest-path routing
+- Good for quick results and testing
+
+**ORTOOLS Strategy** (optimized, slower):
+- Google OR-Tools VRP solver for heterogeneous fleets
+
+Both strategies use:
+- **Time-dependent historic travel times** from 15-minute bins
+- Vehicle-type specific restrictions (e.g., trucks can't use certain roads)
+- Time-windowed restrictions (e.g., no trucks in city center 8-10am)
+- Congestion pricing converted to time costs using Value of Travel Time (VTT)
+
+```python
+from parcel_delivery_two.routing import Router
+
+# Route vehicles (departure_time required for historic travel times)
+router = Router(
+    courier=courier,
+    network=network,
+    restrictions=[],
+    departure_time=28800.0,  # 8:00 AM
+    strategy="DEFAULT"       # or "ORTOOLS"
+)
+router.calculate_itinerary()
+```
+
+### Vehicle Configuration
+
+Configure vehicle characteristics for fuel, emission, and operational cost calculations:
 
 ```python
 from parcel_delivery_two.metrics import VehicleTypeConfig
 
-configs = {
+vehicle_configs = {
     "car": VehicleTypeConfig(
-        fuel_efficiency_km_per_l=15.0,      # ~6.7 L/100km
-        fuel_price_per_liter=1.80,
-        emission_factor_g_co2_per_l=2300,    # Gasoline
+        fuel_efficiency_km_per_l=15.0,          # ~6.7 L/100km
+        fuel_price_per_liter=1.80,              # $/L
+        emission_factor_g_co2_per_l=2300,       # Gasoline
         is_clean_mode=False,
-        labor_cost_per_hour=25.0
+        labor_cost_per_hour=25.0                # $/hour
     ),
     "bike": VehicleTypeConfig(
-        fuel_efficiency_km_per_l=float('inf'),  # No fuel
+        fuel_efficiency_km_per_l=float('inf'),  # Zero emissions
         fuel_price_per_liter=0.0,
         emission_factor_g_co2_per_l=0,
         is_clean_mode=True,
@@ -216,19 +227,80 @@ configs = {
 }
 ```
 
-### Congestion Pricing
-Add time-based tolls that affect routing decisions:
+### Traffic Restrictions
+
+Add congestion pricing that affects routing decisions by converting monetary cost to equivalent travel time using the courier's Value of Travel Time (VTT):
 
 ```python
-from parcel_delivery_two.restrictions import CongestionPricing
+from parcel_delivery_two.restrictions import CongestionPricing, ProhibitEdge
 
-# $5 toll for big trucks on edge 15 during morning rush
+# $5 toll for big trucks on edge 15 during morning rush (8-10am)
 pricing = CongestionPricing(
     edge_id=15, 
     cost=5.0, 
     vehicle_type="bigtruck", 
-    time_window=[28800, 36000]  # 8:00-10:00
+    time_window=[28800, 36000]  # Seconds from midnight
 )
+
+# Prohibit cars from edge 10 during restricted hours
+prohibition = ProhibitEdge(
+    edge_id=10,
+    vehicle_type="car",
+    time_window=[0, 86400]  # All day
+)
+```
+
+### Simulation & Metrics
+
+Run a discrete-event simulation and collect metrics:
+
+```python
+from parcel_delivery_two import MetricsCollector
+from parcel_delivery_two.core import Kernel
+
+# Run simulation
+sim = Kernel()
+sim.set_network(network)
+sim.set_restrictions([pricing, prohibition])  # For congestion cost tracking
+sim.register_courier(courier)
+sim.run(until=86400)  # Run for 24 hours
+
+# Get metrics
+metrics = MetricsCollector()
+metrics.print_summary()  # Runtime metrics
+metrics.dump_to_csv()    # Output CSVs for analysis
+
+# Post-simulation business metrics
+from parcel_delivery_two.metrics import PostSimulationMetrics
+
+business = PostSimulationMetrics.from_csvs("output/", vehicle_configs)
+business.print_summary()
+```
+
+**Available Metrics:**
+- **Runtime**: assignment rate, completion rate, average delivery time, congestion costs
+- **Post-simulation**: fuel consumption, CO2 emissions, operational costs, clean mode share
+
+### Visualization
+
+The simulator provides several visualization options:
+
+```python
+# Static network view (best for small networks)
+network.visualize()
+
+# Dynamic congestion heatmap with time slider
+network.visualize_dynamic_congestion()
+
+# Vehicle movement animation
+from parcel_delivery_two.visualizers import MovementVisualizer
+
+visualizer = MovementVisualizer(network)
+visualizer.animate(n_frames=300, interval_ms=50)  # Auto-playing animation
+visualizer.visualize(n_steps=300)                  # Interactive slider
+
+# Export to Sigma.js for large network visualization
+network.export_for_sigma("network.json")
 ```
 
 ## Output Files
@@ -244,13 +316,6 @@ After running a simulation, check the `output/` directory for:
 
 ## Documentation
 
-- `CLAUDE.md` - Technical reference for LLM agents (complete API documentation)
+- `LLM_CONTEXT.md` - Technical reference for LLM agents (complete API documentation)
 - `BUSINESS_METRICS_FORMULAS.md` - Detailed formulas for business metrics calculations
 
-## License
-
-[Add your license information here]
-
-## Contributing
-
-[Add contribution guidelines here]
