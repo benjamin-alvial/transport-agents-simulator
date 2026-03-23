@@ -28,6 +28,8 @@ class Courier:
         location: int,
         vtt: float = 30.0/3600,
     ):
+        if "_" in courier_id:
+            raise ValueError(f"courier_id cannot contain underscores: {courier_id!r}")
         self.courier_id = courier_id
         self.vehicles = vehicles
         self.location = location
